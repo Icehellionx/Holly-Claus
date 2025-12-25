@@ -1,0 +1,2615 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AURA Lore Entry Builder</title>
+    <style>
+      :root {
+        --bg: #050816;
+        --bg-elevated: #0b1020;
+        --bg-elevated-2: #111827;
+        --accent: #4f46e5;
+        --accent-soft: rgba(79, 70, 229, 0.2);
+        --accent-soft-2: rgba(79, 70, 229, 0.4);
+        --accent-strong: #a855f7;
+        --border-subtle: #1f2937;
+        --border-strong: #374151;
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --text-soft: #6b7280;
+        --danger: #ef4444;
+        --success: #22c55e;
+        --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.6);
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-pill: 999px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: radial-gradient(circle at top left, #111827 0, #020617 45%, #000 100%);
+        color: var(--text-main);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .app-shell {
+        display: flex;
+        height: 100vh;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* SIDEBAR                                                            */
+      /* ------------------------------------------------------------------ */
+      .sidebar {
+        width: 260px;
+        background: linear-gradient(180deg, #020617 0%, #050816 45%, #020617 100%);
+        border-right: 1px solid var(--border-subtle);
+        padding: 14px 10px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 6px 10px;
+      }
+
+      .sidebar-title {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--text-muted);
+        text-transform: uppercase;
+      }
+
+      .pill-button {
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.45), rgba(15, 23, 42, 0.95));
+        color: #f9fafb;
+        font-size: 12px;
+        padding: 4px 10px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.1);
+      }
+
+      .pill-button.small {
+        font-size: 11px;
+        padding: 3px 8px;
+      }
+
+      .pill-button.secondary {
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-muted);
+      }
+
+      .pill-button.danger {
+        background: rgba(127, 29, 29, 0.9);
+        border-color: rgba(248, 113, 113, 0.5);
+        color: #fecaca;
+      }
+
+      .pill-button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+
+      .entries-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 4px 4px 4px;
+        border-radius: var(--radius-md);
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.4));
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.8);
+      }
+
+      .entry-item {
+        border-radius: 10px;
+        padding: 6px 7px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 11px;
+        background: transparent;
+      }
+
+      .entry-item-mainrow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+      }
+
+      .entry-item:hover {
+        background: rgba(55, 65, 81, 0.35);
+        border-color: rgba(148, 163, 184, 0.3);
+      }
+
+      .entry-item.active {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.32), rgba(17, 24, 39, 0.9));
+        border-color: var(--accent-soft-2);
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.6);
+      }
+
+      .entry-item.shift-item {
+        padding-left: 16px;
+        font-size: 10px;
+        opacity: 0.95;
+        background: rgba(15, 23, 42, 0.8);
+        position: relative;
+      }
+
+      .entry-item.shift-item::before {
+        content: "";
+        position: absolute;
+        left: 6px;
+        top: 6px;
+        bottom: 6px;
+        width: 2px;
+        border-radius: 999px;
+        background: linear-gradient(to bottom, rgba(129, 140, 248, 0.8), rgba(244, 114, 182, 0.7));
+      }
+
+      .entry-item-title {
+        font-weight: 600;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .entry-item-title.shift-label {
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .entry-item-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-soft);
+        font-size: 10px;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+
+      .sidebar-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 4px 0;
+        gap: 6px;
+      }
+
+      .sidebar-footer .pill-button {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .sidebar-footer small {
+        font-size: 10px;
+        color: var(--text-soft);
+      }
+
+      .entry-arrows {
+        display: inline-flex;
+        flex-shrink: 0;
+        gap: 2px;
+      }
+
+      .entry-arrow-btn {
+        border-radius: 999px;
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-soft);
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .entry-arrow-btn:hover {
+        border-color: rgba(129, 140, 248, 0.8);
+        color: #e5e7eb;
+        background: rgba(30, 64, 175, 0.8);
+      }
+
+      /* Group labels in sidebar */
+      .group-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 6px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 500;
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        background: rgba(15, 23, 42, 0.95);
+        color: var(--text-main);
+        max-width: 110px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .group-color-0 {
+        border-color: rgba(129, 140, 248, 0.9);
+        background: rgba(79, 70, 229, 0.2);
+      }
+
+      .group-color-1 {
+        border-color: rgba(52, 211, 153, 0.9);
+        background: rgba(16, 185, 129, 0.2);
+      }
+
+      .group-color-2 {
+        border-color: rgba(248, 113, 113, 0.9);
+        background: rgba(239, 68, 68, 0.2);
+      }
+
+      .group-color-3 {
+        border-color: rgba(251, 191, 36, 0.9);
+        background: rgba(234, 179, 8, 0.2);
+      }
+
+      .group-color-4 {
+        border-color: rgba(56, 189, 248, 0.9);
+        background: rgba(59, 130, 246, 0.2);
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* MAIN PANEL                                                         */
+      /* ------------------------------------------------------------------ */
+      .main-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(circle at top, #020617 0%, #020617 55%, #000 100%);
+      }
+
+      .main-header {
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: linear-gradient(90deg, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.96));
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .brand-block {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .brand-title {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      .brand-subtitle {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .header-center {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .tab-toggle {
+        display: inline-flex;
+        padding: 3px;
+        border-radius: var(--radius-pill);
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid var(--border-strong);
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.8);
+      }
+
+      .tab-button {
+        border-radius: var(--radius-pill);
+        border: none;
+        font-size: 12px;
+        padding: 5px 12px;
+        cursor: pointer;
+        background: transparent;
+        color: var(--text-soft);
+      }
+
+      .tab-button.active {
+        background: radial-gradient(circle at top, rgba(129, 140, 248, 0.6), rgba(79, 70, 229, 0.9));
+        color: #f9fafb;
+        box-shadow: 0 0 0 1px rgba(191, 219, 254, 0.5);
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .file-input-hidden {
+        display: none;
+      }
+
+      .status-pill {
+        font-size: 11px;
+        padding: 3px 9px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(55, 65, 81, 0.8);
+        color: var(--text-soft);
+        background: rgba(15, 23, 42, 0.85);
+      }
+
+      .status-pill.good {
+        border-color: rgba(34, 197, 94, 0.7);
+        color: #bbf7d0;
+      }
+
+      .status-pill.bad {
+        border-color: rgba(248, 113, 113, 0.7);
+        color: #fecaca;
+      }
+
+      .main-body {
+        flex: 1;
+        overflow: hidden;
+        padding: 0 18px 16px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .view-panel {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 2px 18px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* FORM LAYOUT                                                        */
+      /* ------------------------------------------------------------------ */
+      .card {
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.96));
+        border-radius: var(--radius-lg);
+        padding: 14px 16px 16px;
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 14px;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
+      }
+
+      .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .card-subtitle {
+        font-size: 11px;
+        color: var(--text-soft);
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 10px 12px;
+        margin-top: 8px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 11px;
+      }
+
+      .field-row {
+        display: flex;
+        gap: 10px;
+      }
+
+      .field label {
+        color: var(--text-soft);
+      }
+
+      input[type="text"],
+      input[type="number"],
+      select,
+      textarea {
+        border-radius: 8px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-main);
+        font-size: 12px;
+        padding: 5px 7px;
+        outline: none;
+      }
+
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--accent-soft-2);
+        box-shadow: 0 0 0 1px var(--accent-soft-2);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 60px;
+        font-family: monospace;
+        line-height: 1.4;
+      }
+
+      .field small {
+        font-size: 10px;
+        color: var(--text-soft);
+      }
+
+      .checkbox-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 11px;
+      }
+
+      .tag-grid-2x2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 18px;
+        margin-top: 10px;
+      }
+
+      .tag-block {
+        border-radius: 12px;
+        border: 1px solid var(--border-subtle);
+        padding: 10px 12px;
+      }
+
+      .checkbox-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 6px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(31, 41, 55, 0.9);
+      }
+
+      .checkbox-label {
+        white-space: nowrap;
+      }
+
+      .tag-select {
+        width: 100%;
+        border-radius: 999px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15, 23, 42, 0.95);
+        color: var(--text-main);
+        font-size: 11px;
+        padding: 4px 10px;
+        outline: none;
+      }
+
+      .tag-select:focus {
+        border-color: var(--accent-soft-2);
+        box-shadow: 0 0 0 1px var(--accent-soft-2);
+      }
+
+      .section-label {
+        margin-top: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .section-help {
+        font-size: 11px;
+        color: var(--text-soft);
+        margin-top: 2px;
+      }
+
+      .tag-mode-row {
+        margin-top: 6px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--text-soft);
+      }
+
+      .tag-mode-row select {
+        font-size: 11px;
+        padding: 3px 6px;
+        border-radius: var(--radius-pill);
+      }
+
+      .divider {
+        height: 1px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(15, 23, 42, 0.2), rgba(148, 163, 184, 0.6), rgba(15, 23, 42, 0.2));
+        margin: 10px 0 4px;
+      }
+
+      .muted {
+        color: var(--text-soft);
+        font-size: 11px;
+      }
+
+      /* Radio pill row for keyword scope */
+      .radio-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 2px;
+      }
+
+      .radio-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15, 23, 42, 0.9);
+        cursor: pointer;
+        font-size: 11px;
+      }
+
+      .radio-pill input[type="radio"] {
+        margin: 0;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* CODE VIEW                                                          */
+      /* ------------------------------------------------------------------ */
+      .code-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr);
+        gap: 14px;
+        height: calc(100% - 4px);
+      }
+
+      .code-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .code-textarea {
+        flex: 1;
+        width: 100%;
+        resize: none;
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        border-radius: 10px;
+        padding: 8px 9px;
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.92));
+        color: var(--text-main);
+      }
+
+      .code-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 6px 0 0;
+        gap: 8px;
+        font-size: 11px;
+      }
+
+      .code-actions-left,
+      .code-actions-right {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .pill-button.ghost {
+        background: transparent;
+        border-color: var(--border-subtle);
+        color: var(--text-muted);
+        box-shadow: none;
+      }
+
+      .pill-button.ghost:hover {
+        border-color: var(--accent-soft-2);
+        color: var(--accent-strong);
+      }
+
+      /* Shifts mini list */
+      .shift-list {
+        max-height: 180px;
+        overflow-y: auto;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid var(--border-subtle);
+        padding: 4px;
+      }
+
+      .shift-list-item {
+        border-radius: 8px;
+        padding: 4px 6px;
+        margin-bottom: 3px;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-muted);
+        border: 1px solid transparent;
+      }
+
+      .shift-list-item:hover {
+        background: rgba(55, 65, 81, 0.4);
+        border-color: rgba(148, 163, 184, 0.4);
+      }
+
+      .shift-list-item.active {
+        background: rgba(79, 70, 229, 0.3);
+        border-color: rgba(129, 140, 248, 0.7);
+        color: #e5e7eb;
+      }
+
+      .shift-breadcrumb {
+        font-size: 11px;
+        color: var(--text-soft);
+        margin-top: 4px;
+      }
+
+      .shift-breadcrumb strong {
+        color: var(--text-main);
+      }
+
+      .subpage-banner {
+        margin-bottom: 10px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(129, 140, 248, 0.7);
+        background: radial-gradient(circle at left, rgba(79, 70, 229, 0.5), rgba(15, 23, 42, 0.9));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 11px;
+      }
+
+      .subpage-banner-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .subpage-banner-main span:first-child {
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(75, 85, 99, 0.8);
+        border-radius: 999px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(156, 163, 175, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- =============================================================== -->
+      <!-- Sidebar: Entries                                                -->
+      <!-- =============================================================== -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title">Entries</div>
+          <button class="pill-button small" id="btnNewEntry">+ New</button>
+        </div>
+        <div class="entries-list" id="entriesList">
+          <!-- Populated by JS -->
+        </div>
+        <div class="sidebar-footer">
+          <button class="pill-button secondary small" id="btnDuplicateEntry">Duplicate</button>
+          <button class="pill-button danger small" id="btnDeleteEntry">Delete</button>
+        </div>
+        <div class="sidebar-footer" style="margin-top:4px;">
+          <small>Tip: Shifts show a vertical bar and are always “daughtered” to their parent entry.</small>
+        </div>
+      </aside>
+      <!-- =============================================================== -->
+      <!-- Main Panel                                                      -->
+      <!-- =============================================================== -->
+      <main class="main-panel">
+        <!-- Sticky header -->
+        <header class="main-header">
+          <div class="brand-block">
+            <div class="brand-title">AURA Lore Entry Builder</div>
+            <div class="brand-subtitle">Point-and-click GUI for LORE_ENTRIES (no coding needed).</div>
+          </div>
+          <div class="header-center">
+            <div class="tab-toggle">
+              <button class="tab-button active" id="tabVisual">Visual editor</button>
+              <button class="tab-button" id="tabCode">Code view</button>
+            </div>
+          </div>
+          <div class="header-actions">
+            <span id="engineStatus" class="status-pill bad">No AURA engine loaded</span>
+            <button class="pill-button small" id="btnImportAura">Import AURA JS / TXT</button>
+            <button class="pill-button small" id="btnGenerateJs">Generate JS</button>
+            <button class="pill-button small" id="btnDownloadJs" disabled>Download JS</button>
+            <input type="file" class="file-input-hidden" id="fileInputAura" accept=".js,.txt" />
+          </div>
+        </header>
+        <section class="main-body">
+          <!-- ======================= VISUAL VIEW ======================= -->
+          <div class="view-panel" id="viewVisual">
+            <!-- ========== ENTRY EDITOR (main page) ========== -->
+            <div id="entryEditor">
+              <!-- Entry basics -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Entry basics</div>
+                    <div class="card-subtitle">Give this lore rule a name, priority, and placement.</div>
+                  </div>
+                  <div class="muted" id="currentEntryLabel">No entry selected</div>
+                </div>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="fieldId">Entry ID</label>
+                    <input id="fieldId" type="text" placeholder="e.g. warm_closeness_scene" />
+                    <small>Short internal name. No spaces.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldTarget">Write into</label>
+                    <select id="fieldTarget">
+                      <option value="scenario">Scenario (default)</option>
+                      <option value="personality">Personality</option>
+                      <option value="both">Both (advanced)</option>
+                    </select>
+                    <small>Where the lore text is appended.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldPriority">Priority (1–10)</label>
+                    <input id="fieldPriority" type="number" min="1" max="10" step="1" value="5" />
+                    <small>Higher wins. Default: 5.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldRandomWeight">Random weight</label>
+                    <input id="fieldRandomWeight" type="number" step="0.1" value="1.0" />
+                    <small>Tie-breaking wiggle. Default: 1.0.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldMinMessages">Min messages</label>
+                    <input id="fieldMinMessages" type="number" min="0" step="1" />
+                    <small>Require at least this many chat messages.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldMaxMessages">Max messages</label>
+                    <input id="fieldMaxMessages" type="number" min="0" step="1" />
+                    <small>Stop firing after this many messages.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldKeywordWindow">Keyword window (messages)</label>
+                    <input id="fieldKeywordWindow" type="number" min="0" step="1" />
+                    <small>Limit keyword checks to the last N messages (blank = entire chat).</small>
+                  </div>
+                  <div class="field" style="grid-column: 1 / -1;">
+                    <label for="fieldKeywords">Quick keywords (ANY, optional)</label>
+                    <textarea id="fieldKeywords" placeholder="e.g. hey, hi, morning, evening"></textarea>
+                    <small>Words that should appear in chat. Separate by commas or new lines.</small>
+                  </div>
+                  <div class="field" style="grid-column: 1 / -1;">
+                    <label>Keyword scope</label>
+                    <div class="radio-row">
+                      <label class="radio-pill">
+                        <input type="radio" name="keywordRole" value="any" checked />
+                        <span>All messages</span>
+                      </label>
+                      <label class="radio-pill">
+                        <input type="radio" name="keywordRole" value="user" />
+                        <span>User messages</span>
+                      </label>
+                      <label class="radio-pill">
+                        <input type="radio" name="keywordRole" value="bot" />
+                        <span>Bot messages</span>
+                      </label>
+                    </div>
+                    <small>Which side of the conversation the keyword fields care about.</small>
+                  </div>
+                </div>
+              </section>
+              <!-- Lore text -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Lore text</div>
+                    <div class="card-subtitle">This is what actually gets added. You can use {{char}} and {{user}}.</div>
+                  </div>
+                </div>
+                <div class="field">
+                  <textarea id="fieldText" placeholder='e.g. "LORE: {{char}} feels quietly protective of {{user}} here..."'></textarea>
+                </div>
+              </section>
+              <!-- Tag conditions: PULSE / ORBIT / PACE / SCENE -->
+              <div class="tag-grid-2x2">
+                <!-- BLOCK 1: Emotion + Subtext (top-left) -->
+                <div class="tag-block">
+                  <!-- Emotion -->
+                  <div class="section-label">Emotion (PULSE)</div>
+                  <div class="section-help">How the scene feels on the surface. Pick one.</div>
+                  <div class="checkbox-grid" id="emoCheckboxes"></div>
+                  <div class="divider"></div>
+                  <!-- Subtext -->
+                  <div class="section-label">Subtext (PULSE)</div>
+                  <div class="section-help">How the words are being used under the surface. Pick one.</div>
+                  <div class="checkbox-grid" id="subCheckboxes"></div>
+                </div>
+                <!-- BLOCK 2: Relationship + Power (top-right) -->
+                <div class="tag-block">
+                  <!-- Relationship -->
+                  <div class="section-label">Relationship (ORBIT)</div>
+                  <div class="section-help">What the underlying relationship feels like between {{char}} and {{user}}. </div>
+                  <div class="checkbox-grid" id="relCheckboxes"></div>
+                  <div class="divider"></div>
+                  <!-- Power -->
+                  <div class="section-label">Power / tone (ORBIT)</div>
+                  <div class="section-help">Who is leading, following, testing, or pushing.</div>
+                  <div class="checkbox-grid" id="powerCheckboxes"></div>
+                </div>
+                <!-- BLOCK 3: Scene & Distance (bottom-left) -->
+                <div class="tag-block">
+                  <div class="section-label">Scene & distance (SCENE)</div>
+                  <div class="section-help">How physically close things feel right now.</div>
+                  <div class="checkbox-grid" id="sceneDistCheckboxes"></div>
+                </div>
+                <!-- BLOCK 4: Topic & Beat (bottom-right) -->
+                <div class="tag-block">
+                  <div class="section-label">Topic & beat (PACE / DIRECTOR)</div>
+                  <div class="section-help">What they’re talking about and what this turn is doing.</div>
+                  <div class="checkbox-grid" id="topicBeatCheckboxes"></div>
+                </div>
+              </div>
+              <!-- Leave this as-is, under the grid -->
+              <div class="tag-mode-row">
+                <span>Use all of the selected tags as:</span>
+                <select id="tagMode">
+                  <option value="all">All must match (andAllTags)</option>
+                  <option value="any">Any can match (andAnyTags)</option>
+                  <option value="ignore">Ignore pickers (advanced tags only)</option>
+                </select>
+              </div>
+              <!-- Advanced tags, keywords & flags -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Advanced: raw tag &amp; flag lists</div>
+                    <div class="card-subtitle">These fields auto-fill from the pickers, but you can also edit them directly.</div>
+                  </div>
+                </div>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="fieldAndAllTags">andAllTags (optional)</label>
+                    <textarea id="fieldAndAllTags" placeholder="emo.warm, rel.close"></textarea>
+                    <small>All of these tags must be present.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldAndAnyTags">andAnyTags (optional)</label>
+                    <textarea id="fieldAndAnyTags" placeholder="scene.private, dist.intimate"></textarea>
+                    <small>At least one of these tags must be present.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldNotTags">andNotTags (optional)</label>
+                    <textarea id="fieldNotTags" placeholder="emo.angry"></textarea>
+                    <small>None of these tags can be present.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldKeywordsAll">keywordsAll (optional)</label>
+                    <textarea id="fieldKeywordsAll" placeholder="all of these words must appear"></textarea>
+                    <small>Every word here must appear in the conversation.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldKeywordsNone">keywordsNone (optional)</label>
+                    <textarea id="fieldKeywordsNone" placeholder="words that must NOT appear"></textarea>
+                    <small>If any of these words appear, this entry will not fire.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldRequireAll">Requires (ALL of these entries fired)</label>
+                    <textarea id="fieldRequireAll" placeholder="session_intro"></textarea>
+                    <small>Other entry IDs that must have fired. Maps to <code>requires</code> in AURA. </small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldRequireAny">At least one of these entries (optional)</label>
+                    <textarea id="fieldRequireAny" placeholder="some_flag, another_flag"></textarea>
+                    <small>Any one of these IDs may have fired. Maps to <code>requireAny</code>. </small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldRequireNone">None of these entries (optional)</label>
+                    <textarea id="fieldRequireNone" placeholder="intro_done_flag"></textarea>
+                    <small>These IDs must NOT have fired yet. Maps to <code>requireNone</code>. </small>
+                  </div>
+                </div>
+              </section>
+              <!-- Shifts (list + navigation) -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Shifts (advanced, optional)</div>
+                    <div class="card-subtitle"> Conditional sub-entries for this lore rule. Each shift is a “daughter” of the main entry. </div>
+                  </div>
+                </div>
+                <div class="field-row" style="align-items:flex-start; margin-top:6px;">
+                  <div style="flex:0 0 220px;">
+                    <div class="section-label">Shifts for this entry</div>
+                    <div class="section-help"> Click once to select a shift (for duplicate/delete). Double-click to open the Shift Editor. </div>
+                    <div class="shift-list" id="shiftList"></div>
+                    <div class="field-row" style="margin-top:6px;">
+                      <button class="pill-button small" id="btnAddShift">+ Add Shift</button>
+                    </div>
+                    <div class="field-row" style="margin-top:4px;">
+                      <button class="pill-button secondary small" id="btnDuplicateShift">Duplicate</button>
+                      <button class="pill-button danger small" id="btnDeleteShift">Delete</button>
+                    </div>
+                  </div>
+                  <div style="flex:1; padding-left:10px;">
+                    <div class="section-label">How this works</div>
+                    <div class="section-help"> Each shift is visually shown as a child under its parent entry in the left-hand list with a vertical bar. When you add or open a shift, a separate <strong>Shift Editor</strong> page lets you change priority, tags, and text. </div>
+                    <div class="shift-breadcrumb"> Current: <strong>Entry editor</strong>. Shifts remain attached to whatever entry you have selected. </div>
+                  </div>
+                </div>
+              </section>
+              <!-- Inclusion groups (rarely used knobs) -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Inclusion groups</div>
+                    <div class="card-subtitle"> Optional group-level knobs so multiple entries share a single cooldown / usage pool. </div>
+                  </div>
+                </div>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="fieldGroupId">Inclusion group ID (optional)</label>
+                    <input id="fieldGroupId" type="text" placeholder="e.g. intro_arc" />
+                    <small>Entries with the same group ID share color and group-level cooldown/limits.</small>
+                  </div>
+                  <div class="field">
+                    <label for="fieldGroupMaxUses">Group max uses (optional)</label>
+                    <input id="fieldGroupMaxUses" type="number" min="0" step="1" />
+                    <small>Maximum times any entry in this group may fire.</small>
+                  </div>
+                  <!-- NEW: weight inside the group -->
+                  <div class="field">
+                    <label for="fieldGroupWeight">Weight inside group (optional)</label>
+                    <input id="fieldGroupWeight" type="number" min="0" step="0.1" />
+                    <small> Relative weight vs other entries with the same group ID. Default: 1.0. </small>
+                  </div>
+                  <!-- NEW: % chance the group fires when eligible -->
+                  <div class="field">
+                    <label for="fieldGroupChance">Group fire chance % (optional)</label>
+                    <input id="fieldGroupChance" type="number" min="0" max="100" step="1" />
+                    <small> 0–100. If set, this is the % chance this group actually fires when eligible. </small>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <!-- ========== SHIFT EDITOR (subpage) ========== -->
+            <div id="shiftEditor" class="hidden">
+              <div class="subpage-banner">
+                <div class="subpage-banner-main">
+                  <span>SHIFT EDITOR</span>
+                  <span> This shift is a <strong>daughter</strong> of entry <strong id="shiftParentEntryLabel">(no parent)</strong>. </span>
+                </div>
+                <button class="pill-button small secondary" id="btnBackToEntry"> ← Back to entry editor </button>
+              </div>
+              <!-- Shift basics -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Shift basics</div>
+                    <div class="card-subtitle"> Each shift can override priority, timing, and where it writes, while staying tied to its parent entry. </div>
+                  </div>
+                </div>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="shiftId">Shift ID</label>
+                    <input id="shiftId" type="text" placeholder="e.g. tease_variant" />
+                    <small>Short internal name for this shift. No spaces.</small>
+                  </div>
+                  <div class="field">
+                    <label for="shiftTarget">Write into</label>
+                    <select id="shiftTarget">
+                      <option value="">Inherit from entry</option>
+                      <option value="scenario">Scenario only</option>
+                      <option value="personality">Personality only</option>
+                      <option value="both">Both (advanced)</option>
+                    </select>
+                    <small>If blank, uses parent entry’s target.</small>
+                  </div>
+                  <div class="field">
+                    <label for="shiftPriority">Priority (optional)</label>
+                    <input id="shiftPriority" type="number" min="1" max="10" step="1" />
+                    <small>Leave empty to inherit the parent’s priority.</small>
+                  </div>
+                  <div class="field">
+                    <label for="shiftRandomWeight">Random weight (optional)</label>
+                    <input id="shiftRandomWeight" type="number" step="0.1" />
+                    <small>Leave empty to inherit the parent’s random weight.</small>
+                  </div>
+                  <div class="field">
+                    <label for="shiftMinMessages">Min messages (optional)</label>
+                    <input id="shiftMinMessages" type="number" min="0" step="1" />
+                    <small>Require at least this many messages for this shift.</small>
+                  </div>
+                  <div class="field">
+                    <label for="shiftMaxMessages">Max messages (optional)</label>
+                    <input id="shiftMaxMessages" type="number" min="0" step="1" />
+                    <small>Stop firing this shift after this many messages.</small>
+                  </div>
+                </div>
+              </section>
+              <!-- Shift tag conditions -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Shift-specific tags</div>
+                    <div class="card-subtitle"> Tags just for this shift. These layer on top of (or override) the parent entry’s conditions. </div>
+                  </div>
+                </div>
+                <!-- Emotion -->
+                <div class="section-label">Emotion (PULSE)</div>
+                <div class="section-help">If set, this shift cares about a specific emotional tone.</div>
+                <div class="checkbox-grid" id="shiftEmoCheckboxes"></div>
+                <!-- Subtext -->
+                <div class="divider"></div>
+                <div class="section-label">Subtext (PULSE)</div>
+                <div class="section-help">Under-the-surface tone for when this shift should fire.</div>
+                <div class="checkbox-grid" id="shiftSubCheckboxes"></div>
+                <!-- Relationship -->
+                <div class="divider"></div>
+                <div class="section-label">Relationship (ORBIT)</div>
+                <div class="section-help">Relationship flavor required to activate this shift.</div>
+                <div class="checkbox-grid" id="shiftRelCheckboxes"></div>
+                <!-- Power -->
+                <div class="divider"></div>
+                <div class="section-label">Power / tone (ORBIT)</div>
+                <div class="section-help">Who is leading or yielding in this shift.</div>
+                <div class="checkbox-grid" id="shiftPowerCheckboxes"></div>
+                <!-- Scene / distance -->
+                <div class="divider"></div>
+                <div class="section-label">Scene & distance (SCENE)</div>
+                <div class="section-help">Shift triggers based on physical closeness.</div>
+                <div class="checkbox-grid" id="shiftSceneDistCheckboxes"></div>
+                <!-- Topic / beat -->
+                <div class="divider"></div>
+                <div class="section-label">Topic & beat (PACE / DIRECTOR)</div>
+                <div class="section-help">Use this to make a shift only fire on specific beats.</div>
+                <div class="checkbox-grid" id="shiftTopicBeatCheckboxes"></div>
+                <div class="tag-mode-row">
+                  <span>Use shift tags as:</span>
+                  <select id="shiftTagMode">
+                    <option value="all">All must match (shift.andAllTags)</option>
+                    <option value="any">Any can match (shift.andAnyTags)</option>
+                    <option value="ignore">Ignore pickers (manual tags only)</option>
+                  </select>
+                </div>
+              </section>
+              <!-- Shift advanced tags -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Shift advanced tags</div>
+                    <div class="card-subtitle">Fine-tune exactly which tags this shift needs or forbids.</div>
+                  </div>
+                </div>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="shiftAndAll">andAllTags (optional)</label>
+                    <textarea id="shiftAndAll" placeholder="sub.tease, rel.close"></textarea>
+                    <small>All of these tags must be present for this shift.</small>
+                  </div>
+                  <div class="field">
+                    <label for="shiftAndAny">andAnyTags (optional)</label>
+                    <textarea id="shiftAndAny" placeholder="beat.escalate, topic.intimacy"></textarea>
+                    <small>At least one of these tags must be present.</small>
+                  </div>
+                  <div class="field">
+                    <label for="shiftNotTags">andNotTags (optional)</label>
+                    <textarea id="shiftNotTags" placeholder="emo.angry"></textarea>
+                    <small>None of these tags can be present.</small>
+                  </div>
+                </div>
+              </section>
+              <!-- Shift text -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Shift text</div>
+                    <div class="card-subtitle"> Optional extra or override text when this shift matches. Uses the same {{char}} / {{user}} syntax. </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <textarea id="shiftText" placeholder='LORE: {{char}} leans harder into playful teasing here.'></textarea>
+                </div>
+              </section>
+              <!-- Raw Shifts JSON -->
+              <section class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Raw Shifts JSON (for this entry)</div>
+                    <div class="card-subtitle"> Direct JSON for <code>Shifts</code> on the current parent entry. Changing this updates the GUI. </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <textarea id="fieldShiftsRaw" placeholder='[
+  {
+    "id": "alt_variant",
+    "andAllTags": ["sub.tease"],
+    "text": "LORE: {{char}} leans harder into playful teasing here."
+  }
+]'></textarea>
+                  <small>Use <strong>Apply raw JSON</strong> carefully; invalid JSON will be rejected. </small>
+                </div>
+                <div class="field-row" style="margin-top:4px;">
+                  <button class="pill-button small ghost" id="btnShiftsFromGui">Rebuild from GUI</button>
+                  <button class="pill-button small" id="btnShiftsToGui">Apply raw JSON</button>
+                </div>
+              </section>
+            </div>
+          </div>
+          <!-- ======================= CODE VIEW ========================= -->
+          <div class="view-panel hidden" id="viewCode">
+            <div class="code-layout">
+              <!-- dynamicLore JSON -->
+              <section class="card code-card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">dynamicLore array (JSON)</div>
+                    <div class="card-subtitle"> Direct view of the entries as JSON. Editing this will update the visual editor when you click <strong>Apply to GUI</strong>. </div>
+                  </div>
+                </div>
+                <textarea id="textareaDynamicLore" class="code-textarea" spellcheck="false"></textarea>
+                <div class="code-actions">
+                  <div class="code-actions-left">
+                    <button class="pill-button small ghost" id="btnLoreFromGui">Rebuild from GUI</button>
+                    <button class="pill-button small" id="btnLoreToGui">Apply to GUI</button>
+                  </div>
+                  <div class="code-actions-right">
+                    <span class="muted">Format: standard JSON array of entry objects.</span>
+                  </div>
+                </div>
+              </section>
+              <!-- Full JS preview -->
+              <section class="card code-card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Full AURA Engine script (preview)</div>
+                    <div class="card-subtitle"> Read-only preview of the exported JS. Click <strong>Generate JS</strong> in the top bar to refresh. </div>
+                  </div>
+                </div>
+                <textarea id="textareaFullScript" class="code-textarea" spellcheck="false" readonly></textarea>
+                <div class="code-actions">
+                  <div class="code-actions-left">
+                    <span class="muted"> This is the file that will download as <code>AURA_Engine_custom.js</code>. </span>
+                  </div>
+                  <div class="code-actions-right">
+                    <span class="muted" id="fullScriptStatus">No engine imported yet.</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      "use strict";
+      // ======================================================================
+      // Data model
+      // ======================================================================
+      const EMOTION_TAGS = [{
+        id: "emo.neutral",
+        label: "Neutral / flat"
+      }, {
+        id: "emo.warm",
+        label: "Warm / fond"
+      }, {
+        id: "emo.happy",
+        label: "Happy / joyful"
+      }, {
+        id: "emo.excited",
+        label: "Excited / energetic"
+      }, {
+        id: "emo.tense",
+        label: "Tense / anxious"
+      }, {
+        id: "emo.angry",
+        label: "Angry / irritated"
+      }, {
+        id: "emo.sad",
+        label: "Sad / hurt"
+      }, {
+        id: "emo.bored",
+        label: "Bored / tired"
+      }];
+      const SUBTEXT_TAGS = [{
+        id: "sub.literal",
+        label: "Literal / on-the-nose"
+      }, {
+        id: "sub.vulnerable",
+        label: "Hidden vulnerability"
+      }, {
+        id: "sub.polite",
+        label: "Polite indirect hint"
+      }, {
+        id: "sub.tease",
+        label: "Playful teasing"
+      }, {
+        id: "sub.deadpan",
+        label: "Deadpan / ambiguous"
+      }, {
+        id: "sub.deflect",
+        label: "Deflection / dodge"
+      }, {
+        id: "sub.sarcasm",
+        label: "Sarcasm (mild / sharp)"
+      }, {
+        id: "sub.biting",
+        label: "Mocking / derisive"
+      }, {
+        id: "sub.exaggerated",
+        label: "Over-the-top exaggeration"
+      }, {
+        id: "sub.testing",
+        label: "Testing boundaries"
+      }, {
+        id: "sub.withheld",
+        label: "Withholding / omission"
+      }, {
+        id: "sub.passive",
+        label: "Passive-aggressive"
+      }, {
+        id: "sub.flirty",
+        label: "Playful flirting"
+      }];
+      const RELATION_TAGS = [{
+        id: "rel.neutral",
+        label: "Neutral"
+      }, {
+        id: "rel.trust",
+        label: "Trust / reassurance"
+      }, {
+        id: "rel.rivalry",
+        label: "Rivalry / challenge"
+      }, {
+        id: "rel.hostile",
+        label: "Hostile / conflict"
+      }, {
+        id: "rel.cold",
+        label: "Cold / withdrawn"
+      }, {
+        id: "rel.warm",
+        label: "Warm / soft connection"
+      }];
+      const POWER_TAGS = [{
+          id: "power.follow",
+          label: "Follow / accommodating"
+        }, {
+          id: "power.equal",
+          label: "Equal footing"
+        }, {
+          id: "power.manipulation",
+          label: "Manipulation / coercive tilt"
+        }, {
+          id: "power.lead",
+          label: "Lead / assertive"
+        } // replaces dominant
+      ];
+      const SCENE_DIST_TAGS = [{
+        id: "scene.advance",
+        label: "Scene advancing"
+      }, {
+        id: "scene.retreat",
+        label: "Scene retreating"
+      }, {
+        id: "dist.intimate",
+        label: "Intimate distance"
+      }, {
+        id: "dist.medium",
+        label: "Medium distance"
+      }, {
+        id: "dist.far",
+        label: "Far / detached"
+      }];
+      const TOPIC_BEAT_TAGS = [{
+        id: "topic.intimacy",
+        label: "Topic: intimacy / affection"
+      }, {
+        id: "topic.violence",
+        label: "Topic: conflict / violence"
+      }, {
+        id: "topic.logistics",
+        label: "Topic: planning / logistics"
+      }, {
+        id: "topic.lore",
+        label: "Topic: lore / worldbuilding"
+      }, {
+        id: "topic.chat",
+        label: "Topic: general chat"
+      }, {
+        id: "topic.meta",
+        label: "Topic: meta / OOC"
+      }, {
+        id: "beat.escalate",
+        label: "Beat: escalate action"
+      }, {
+        id: "beat.resolve",
+        label: "Beat: de-escalate / resolution"
+      }, {
+        id: "beat.sustain",
+        label: "Beat: sustain banter"
+      }, {
+        id: "beat.pivot",
+        label: "Beat: pivot topic"
+      }, {
+        id: "beat.break",
+        label: "Beat: meta break"
+      }, {
+        id: "beat.stagnant",
+        label: "Beat: stagnant / loop"
+      }];
+      let entries = [];
+      let currentIndex = -1; // main entry index
+      let currentShiftIndex = -1; // shift index within entries[currentIndex].Shifts
+      let auraEngineTemplate = "";
+      let latestGeneratedScript = "";
+      // group color mapping for sidebar labels
+      const GROUP_COLOR_CLASSES = ["group-color-0", "group-color-1", "group-color-2", "group-color-3", "group-color-4"];
+      const groupColorMap = {};
+
+      function getGroupColorClass(groupId) {
+        if (!groupId) return "";
+        if (!groupColorMap[groupId]) {
+          const keys = Object.keys(groupColorMap);
+          const nextIndex = keys.length % GROUP_COLOR_CLASSES.length;
+          groupColorMap[groupId] = GROUP_COLOR_CLASSES[nextIndex];
+        }
+        return groupColorMap[groupId];
+      }
+      // ======================================================================
+      // DOM helpers
+      // ======================================================================
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      function textAreaToList(text) {
+        if (!text) return [];
+        return text.split(/[,\n]/).map((s) => s.trim()).filter(Boolean);
+      }
+
+      function listToText(list) {
+        return (list || []).join(", ");
+      }
+      // Build a dropdown for each tag group instead of radio buttons
+      function createOptionGroup(containerId, tags, prefix, groupName) {
+        const container = $(containerId);
+        if (!container) return;
+        container.innerHTML = "";
+        const select = document.createElement("select");
+        select.className = "tag-select";
+        select.dataset.group = groupName || "";
+        select.id = prefix + "_select";
+        const optNone = document.createElement("option");
+        optNone.value = "";
+        optNone.textContent = "(no specific tag)";
+        select.appendChild(optNone);
+        tags.forEach((tag) => {
+          const opt = document.createElement("option");
+          opt.value = tag.id;
+          opt.textContent = tag.label;
+          select.appendChild(opt);
+        });
+        container.appendChild(select);
+      }
+
+      function getSelectedTagsFromGroup(containerId) {
+        const container = $(containerId);
+        if (!container) return [];
+        const select = container.querySelector("select");
+        if (!select) return [];
+        const val = select.value;
+        return val ? [val] : [];
+      }
+
+      function setSelectedTagsForGroup(containerId, tags) {
+        const container = $(containerId);
+        if (!container) return;
+        const select = container.querySelector("select");
+        if (!select) return;
+        const first = (tags && tags.length) ? tags[0] : "";
+        select.value = first || "";
+      }
+      // ======================================================================
+      // Entry & Shift data constructors
+      // ======================================================================
+      function makeEmptyEntry() {
+        return {
+          id: "",
+          priority: 5,
+          target: "scenario",
+          randomWeight: 1.0,
+          minMessages: null,
+          maxMessages: null,
+          keywordWindow: null,
+          keywordRoles: "any",
+          keywordsAny: [],
+          keywordsAll: [],
+          keywordsNone: [],
+          andAllTags: [],
+          andAnyTags: [],
+          notTags: [],
+          requires: [],
+          requireAny: [],
+          requireNone: [],
+          text: "",
+          tagMode: "all",
+          groupId: "",
+          groupCooldown: null,
+          groupMaxUses: null,
+          groupWeight: 1.0, // NEW: weight inside group
+          groupChance: null, // NEW: % chance this group fires (0–100)
+          Shifts: []
+        };
+      }
+
+      function makeEmptyShift() {
+        return {
+          id: "",
+          target: "",
+          priority: null,
+          randomWeight: null,
+          minMessages: null,
+          maxMessages: null,
+          tagMode: "all",
+          andAllTags: [],
+          andAnyTags: [],
+          notTags: [],
+          andNotTags: [],
+          text: ""
+        };
+      }
+      // ======================================================================
+      // Sidebar: entry + shift tree
+      // ======================================================================
+      function refreshEntryList() {
+        const listEl = $("entriesList");
+        if (!listEl) return;
+        listEl.innerHTML = "";
+        entries.forEach((entry, idx) => {
+          if (!entry || typeof entry !== "object") return;
+          const groupId = entry.groupId || "";
+          const groupClass = groupId ? getGroupColorClass(groupId) : "";
+          // Main entry row
+          const isMainActive = idx === currentIndex && currentShiftIndex === -1;
+          const item = document.createElement("div");
+          item.className = "entry-item" + (isMainActive ? " active" : "");
+          item.dataset.entryIndex = String(idx);
+          item.dataset.shiftIndex = "-1";
+          const mainRow = document.createElement("div");
+          mainRow.className = "entry-item-mainrow";
+          const title = document.createElement("div");
+          title.className = "entry-item-title";
+          title.textContent = entry.id || "(unnamed)";
+          const arrows = document.createElement("div");
+          arrows.className = "entry-arrows";
+          const upBtn = document.createElement("button");
+          upBtn.className = "entry-arrow-btn";
+          upBtn.title = "Move up";
+          upBtn.textContent = "▲";
+          upBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            moveEntryUp(idx);
+          });
+          const downBtn = document.createElement("button");
+          downBtn.className = "entry-arrow-btn";
+          downBtn.title = "Move down";
+          downBtn.textContent = "▼";
+          downBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            moveEntryDown(idx);
+          });
+          arrows.appendChild(upBtn);
+          arrows.appendChild(downBtn);
+          mainRow.appendChild(title);
+          mainRow.appendChild(arrows);
+          const meta = document.createElement("div");
+          meta.className = "entry-item-meta";
+          const left = document.createElement("span");
+          left.textContent = `prio ${entry.priority ?? 5}`;
+          const right = document.createElement("span");
+          right.textContent = entry.target || "scenario";
+          meta.appendChild(left);
+          meta.appendChild(right);
+          if (groupId) {
+            const gSpan = document.createElement("span");
+            gSpan.className = "group-label " + groupClass;
+            gSpan.textContent = groupId;
+            meta.appendChild(gSpan);
+          }
+          item.appendChild(mainRow);
+          item.appendChild(meta);
+          item.addEventListener("click", () => {
+            selectEntry(idx);
+          });
+          listEl.appendChild(item);
+          // Shifts (daughters)
+          const shifts = Array.isArray(entry.Shifts) ? entry.Shifts : [];
+          shifts.forEach((shift, sIdx) => {
+            if (!shift || typeof shift !== "object") return;
+            const isShiftActive = idx === currentIndex && sIdx === currentShiftIndex;
+            const sItem = document.createElement("div");
+            sItem.className = "entry-item shift-item" + (isShiftActive ? " active" : "");
+            sItem.dataset.entryIndex = String(idx);
+            sItem.dataset.shiftIndex = String(sIdx);
+            const sTitle = document.createElement("div");
+            sTitle.className = "entry-item-title shift-label";
+            sTitle.textContent = `↳ Shift: ${shift.id || "(unnamed)"}`;
+            const sMeta = document.createElement("div");
+            sMeta.className = "entry-item-meta";
+            const sLeft = document.createElement("span");
+            sLeft.textContent = shift.priority != null ? `prio ${shift.priority}` : "prio: inherit";
+            const sRight = document.createElement("span");
+            sRight.textContent = shift.text ? "has text" : "no text";
+            sMeta.appendChild(sLeft);
+            sMeta.appendChild(sRight);
+            if (groupId) {
+              const gSpan = document.createElement("span");
+              gSpan.className = "group-label " + groupClass;
+              gSpan.textContent = groupId;
+              sMeta.appendChild(gSpan);
+            }
+            sItem.appendChild(sTitle);
+            sItem.appendChild(sMeta);
+            sItem.addEventListener("click", (ev) => {
+              ev.stopPropagation();
+              selectShift(idx, sIdx);
+            });
+            listEl.appendChild(sItem);
+          });
+        });
+        if (currentIndex === -1) {
+          $("currentEntryLabel").textContent = "No entry selected";
+        }
+      }
+
+      function moveEntryUp(idx) {
+        if (idx <= 0 || idx >= entries.length) return;
+        const tmp = entries[idx - 1];
+        entries[idx - 1] = entries[idx];
+        entries[idx] = tmp;
+        currentIndex = idx - 1;
+        currentShiftIndex = -1;
+        refreshEntryList();
+        fillFormFromEntry(entries[currentIndex]);
+        updateDynamicLoreJsonFromEntries();
+      }
+
+      function moveEntryDown(idx) {
+        if (idx < 0 || idx >= entries.length - 1) return;
+        const tmp = entries[idx + 1];
+        entries[idx + 1] = entries[idx];
+        entries[idx] = tmp;
+        currentIndex = idx + 1;
+        currentShiftIndex = -1;
+        refreshEntryList();
+        fillFormFromEntry(entries[currentIndex]);
+        updateDynamicLoreJsonFromEntries();
+      }
+
+      function addNewEntry() {
+        const entry = makeEmptyEntry();
+        entries.push(entry);
+        currentIndex = entries.length - 1;
+        currentShiftIndex = -1;
+        refreshEntryList();
+        fillFormFromEntry(entry);
+        showEntryEditor();
+      }
+
+      function duplicateCurrentEntry() {
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        saveFormToCurrentEntry();
+        saveShiftFormToCurrentEntry();
+        const clone = JSON.parse(JSON.stringify(entries[currentIndex]));
+        clone.id = clone.id ? clone.id + "_copy" : "entry_copy";
+        entries.splice(currentIndex + 1, 0, clone);
+        currentIndex = currentIndex + 1;
+        currentShiftIndex = -1;
+        refreshEntryList();
+        fillFormFromEntry(entries[currentIndex]);
+        updateDynamicLoreJsonFromEntries();
+        showEntryEditor();
+      }
+      // Sidebar Delete button:
+      // - If a shift is active (currentShiftIndex >= 0), delete only that shift.
+      // - Otherwise, delete the entire entry (and its shifts).
+      function deleteCurrentEntry() {
+        if (!entries.length) return;
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        const entry = entries[currentIndex];
+        // If a shift is currently selected/active, delete only that shift
+        if (currentShiftIndex >= 0 && Array.isArray(entry.Shifts) && currentShiftIndex < entry.Shifts.length) {
+          const shift = entry.Shifts[currentShiftIndex];
+          const okShift = confirm(`Delete shift "${shift.id || "(unnamed shift)"}" from entry "${entry.id || "(unnamed entry)"}"?`);
+          if (!okShift) return;
+          entry.Shifts.splice(currentShiftIndex, 1);
+          if (entry.Shifts.length === 0) {
+            currentShiftIndex = -1;
+          } else {
+            currentShiftIndex = Math.max(0, currentShiftIndex - 1);
+          }
+          refreshShiftList();
+          refreshEntryList();
+          if (currentShiftIndex >= 0) {
+            fillShiftForm(entry.Shifts[currentShiftIndex]);
+          } else {
+            fillShiftForm(null);
+          }
+          updateRawShiftsTextarea();
+          updateDynamicLoreJsonFromEntries();
+          showEntryEditor();
+          return;
+        }
+        // Otherwise, delete the entire entry
+        const ok = confirm(`Delete entry "${entry.id || "(unnamed entry)"}" and all of its shifts?`);
+        if (!ok) return;
+        entries.splice(currentIndex, 1);
+        if (!entries.length) {
+          currentIndex = -1;
+          currentShiftIndex = -1;
+          clearForm();
+        } else {
+          currentIndex = Math.max(0, currentIndex - 1);
+          currentShiftIndex = -1;
+          fillFormFromEntry(entries[currentIndex]);
+        }
+        refreshEntryList();
+        refreshShiftList();
+        updateDynamicLoreJsonFromEntries();
+        showEntryEditor();
+      }
+
+      function selectEntry(idx) {
+        if (idx < 0 || idx >= entries.length) return;
+        try {
+          saveFormToCurrentEntry();
+        } catch (e) {
+          console.error("Error saving entry before switching:", e);
+        }
+        try {
+          saveShiftFormToCurrentEntry();
+        } catch (e) {
+          console.error("Error saving shift before switching:", e);
+        }
+        currentIndex = idx;
+        currentShiftIndex = -1;
+        refreshEntryList();
+        fillFormFromEntry(entries[idx]);
+        showEntryEditor();
+      }
+
+      function selectShift(entryIndex, shiftIndex) {
+        if (entryIndex < 0 || entryIndex >= entries.length) return;
+        const entry = entries[entryIndex];
+        if (!Array.isArray(entry.Shifts) || shiftIndex < 0 || shiftIndex >= entry.Shifts.length) {
+          return;
+        }
+        try {
+          saveFormToCurrentEntry();
+        } catch (e) {
+          console.error("Error saving entry before switching to shift:", e);
+        }
+        try {
+          saveShiftFormToCurrentEntry();
+        } catch (e) {
+          console.error("Error saving previous shift before switching:", e);
+        }
+        currentIndex = entryIndex;
+        currentShiftIndex = shiftIndex;
+        refreshEntryList();
+        fillFormFromEntry(entry);
+        fillShiftForm(entry.Shifts[shiftIndex]);
+        openShiftEditor();
+      }
+      // ======================================================================
+      // Shift list (in Entry Editor card)
+      // ======================================================================
+      function refreshShiftList() {
+        const listEl = $("shiftList");
+        if (!listEl) return;
+        listEl.innerHTML = "";
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        const entry = entries[currentIndex];
+        const shifts = Array.isArray(entry.Shifts) ? entry.Shifts : [];
+        shifts.forEach((shift, idx) => {
+          if (!shift || typeof shift !== "object") return;
+          const item = document.createElement("div");
+          item.className = "shift-list-item" + (idx === currentShiftIndex ? " active" : "");
+          item.dataset.shiftIndex = String(idx);
+          const left = document.createElement("span");
+          left.textContent = shift.id || `(shift ${idx + 1})`;
+          const right = document.createElement("span");
+          right.textContent = shift.text ? "text" : "empty";
+          item.appendChild(left);
+          item.appendChild(right);
+          // Single-click: highlight/select shift (for duplicate/delete)
+          item.addEventListener("click", () => {
+            currentShiftIndex = idx;
+            refreshShiftList();
+            refreshEntryList();
+          });
+          // Double-click: open shift editor
+          item.addEventListener("dblclick", () => {
+            currentShiftIndex = idx;
+            fillShiftForm(shift);
+            refreshShiftList();
+            refreshEntryList();
+            openShiftEditor();
+          });
+          listEl.appendChild(item);
+        });
+      }
+
+      function fillShiftForm(shift) {
+        if (!shift) {
+          $("shiftId").value = "";
+          $("shiftTarget").value = "";
+          $("shiftPriority").value = "";
+          $("shiftRandomWeight").value = "";
+          $("shiftMinMessages").value = "";
+          $("shiftMaxMessages").value = "";
+          $("shiftTagMode").value = "all";
+          $("shiftAndAll").value = "";
+          $("shiftAndAny").value = "";
+          $("shiftNotTags").value = "";
+          $("shiftText").value = "";
+          setSelectedTagsForGroup("shiftEmoCheckboxes", []);
+          setSelectedTagsForGroup("shiftSubCheckboxes", []);
+          setSelectedTagsForGroup("shiftRelCheckboxes", []);
+          setSelectedTagsForGroup("shiftPowerCheckboxes", []);
+          setSelectedTagsForGroup("shiftSceneDistCheckboxes", []);
+          setSelectedTagsForGroup("shiftTopicBeatCheckboxes", []);
+          updateRawShiftsTextarea();
+          updateShiftBreadcrumb();
+          return;
+        }
+        $("shiftId").value = shift.id || "";
+        $("shiftTarget").value = shift.target || "";
+        $("shiftPriority").value = shift.priority != null ? shift.priority : "";
+        $("shiftRandomWeight").value = shift.randomWeight != null ? shift.randomWeight : "";
+        $("shiftMinMessages").value = shift.minMessages != null ? shift.minMessages : "";
+        $("shiftMaxMessages").value = shift.maxMessages != null ? shift.maxMessages : "";
+        $("shiftTagMode").value = shift.tagMode || "all";
+        $("shiftAndAll").value = listToText(shift.andAllTags || []);
+        $("shiftAndAny").value = listToText(shift.andAnyTags || []);
+        $("shiftNotTags").value = listToText(shift.notTags || shift.andNotTags || []);
+        $("shiftText").value = shift.text || "";
+        const allAllTags = shift.andAllTags || [];
+        const emoTags = allAllTags.filter((t) => t.startsWith("emo."));
+        const subTags = allAllTags.filter((t) => t.startsWith("sub."));
+        const relTags = allAllTags.filter((t) => t.startsWith("rel."));
+        const powTags = allAllTags.filter((t) => t.startsWith("power."));
+        const sceneTags = allAllTags.filter(
+          (t) => t.startsWith("scene.") || t.startsWith("dist."));
+        const topicTags = allAllTags.filter(
+          (t) => t.startsWith("topic.") || t.startsWith("beat."));
+        setSelectedTagsForGroup("shiftEmoCheckboxes", emoTags.length ? [emoTags[0]] : []);
+        setSelectedTagsForGroup("shiftSubCheckboxes", subTags.length ? [subTags[0]] : []);
+        setSelectedTagsForGroup("shiftRelCheckboxes", relTags.length ? [relTags[0]] : []);
+        setSelectedTagsForGroup("shiftPowerCheckboxes", powTags.length ? [powTags[0]] : []);
+        setSelectedTagsForGroup("shiftSceneDistCheckboxes", sceneTags.length ? [sceneTags[0]] : []);
+        setSelectedTagsForGroup("shiftTopicBeatCheckboxes", topicTags.length ? [topicTags[0]] : []);
+        updateRawShiftsTextarea();
+        updateShiftBreadcrumb();
+      }
+
+      function saveShiftFormToCurrentEntry() {
+        if (!$("shiftId")) return;
+        try {
+          if (currentIndex < 0 || currentIndex >= entries.length) {
+            updateRawShiftsTextarea();
+            return;
+          }
+          const entry = entries[currentIndex];
+          if (!Array.isArray(entry.Shifts)) entry.Shifts = [];
+          if (currentShiftIndex < 0 || currentShiftIndex >= entry.Shifts.length) {
+            updateRawShiftsTextarea();
+            return;
+          }
+          const shift = entry.Shifts[currentShiftIndex] || {};
+          const shiftIdEl = $("shiftId");
+          const shiftTargetEl = $("shiftTarget");
+          const shiftPriorityEl = $("shiftPriority");
+          const shiftRandomEl = $("shiftRandomWeight");
+          const shiftMinEl = $("shiftMinMessages");
+          const shiftMaxEl = $("shiftMaxMessages");
+          const shiftTagModeEl = $("shiftTagMode");
+          const shiftAndAllEl = $("shiftAndAll");
+          const shiftAndAnyEl = $("shiftAndAny");
+          const shiftNotTagsEl = $("shiftNotTags");
+          const shiftTextEl = $("shiftText");
+          shift.id = shiftIdEl ? shiftIdEl.value.trim() : "";
+          shift.target = shiftTargetEl ? shiftTargetEl.value || "" : "";
+          const sp = shiftPriorityEl ? shiftPriorityEl.value.trim() : "";
+          const sr = shiftRandomEl ? shiftRandomEl.value.trim() : "";
+          const sMin = shiftMinEl ? shiftMinEl.value.trim() : "";
+          const sMax = shiftMaxEl ? shiftMaxEl.value.trim() : "";
+          shift.priority = sp === "" ? null : Number(sp);
+          shift.randomWeight = sr === "" ? null : Number(sr);
+          shift.minMessages = sMin === "" ? null : Number(sMin);
+          shift.maxMessages = sMax === "" ? null : Number(sMax);
+          shift.tagMode = shiftTagModeEl ? shiftTagModeEl.value || "all" : "all";
+          const andAllText = shiftAndAllEl ? shiftAndAllEl.value : "";
+          const andAnyText = shiftAndAnyEl ? shiftAndAnyEl.value : "";
+          const notText = shiftNotTagsEl ? shiftNotTagsEl.value : "";
+          const textText = shiftTextEl ? shiftTextEl.value : "";
+          shift.andAllTags = textAreaToList(andAllText);
+          shift.andAnyTags = textAreaToList(andAnyText);
+          const notList = textAreaToList(notText);
+          shift.notTags = notList;
+          shift.andNotTags = notList;
+          shift.text = textText;
+          const pickerTags = [].concat(getSelectedTagsFromGroup("shiftEmoCheckboxes")).concat(getSelectedTagsFromGroup("shiftSubCheckboxes")).concat(getSelectedTagsFromGroup("shiftRelCheckboxes")).concat(getSelectedTagsFromGroup("shiftPowerCheckboxes")).concat(getSelectedTagsFromGroup("shiftSceneDistCheckboxes")).concat(getSelectedTagsFromGroup("shiftTopicBeatCheckboxes"));
+          const uniquePicker = Array.from(new Set(pickerTags));
+          if (shift.tagMode === "all") {
+            shift.andAllTags = Array.from(new Set([...(shift.andAllTags || []), ...uniquePicker]));
+          } else if (shift.tagMode === "any") {
+            shift.andAnyTags = Array.from(new Set([...(shift.andAnyTags || []), ...uniquePicker]));
+          }
+          entry.Shifts[currentShiftIndex] = shift;
+          refreshShiftList();
+          refreshEntryList();
+          updateRawShiftsTextarea();
+          updateDynamicLoreJsonFromEntries();
+          updateShiftBreadcrumb();
+        } catch (err) {
+          console.error("saveShiftFormToCurrentEntry error:", err);
+        }
+      }
+
+      function addShiftToCurrentEntry() {
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        const entry = entries[currentIndex];
+        if (!Array.isArray(entry.Shifts)) entry.Shifts = [];
+        saveShiftFormToCurrentEntry();
+        const newShift = makeEmptyShift();
+        newShift.id = (entry.id || "entry") + "_shift_" + (entry.Shifts.length + 1);
+        entry.Shifts.push(newShift);
+        currentShiftIndex = entry.Shifts.length - 1;
+        refreshShiftList();
+        fillShiftForm(newShift);
+        refreshEntryList();
+        updateRawShiftsTextarea();
+        updateDynamicLoreJsonFromEntries();
+        openShiftEditor();
+      }
+
+      function duplicateCurrentShift() {
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        const entry = entries[currentIndex];
+        if (!Array.isArray(entry.Shifts) || currentShiftIndex < 0 || currentShiftIndex >= entry.Shifts.length) {
+          return;
+        }
+        saveShiftFormToCurrentEntry();
+        const base = entry.Shifts[currentShiftIndex];
+        const clone = JSON.parse(JSON.stringify(base));
+        clone.id = clone.id ? clone.id + "_copy" : "shift_copy";
+        entry.Shifts.splice(currentShiftIndex + 1, 0, clone);
+        currentShiftIndex = currentShiftIndex + 1;
+        refreshShiftList();
+        fillShiftForm(clone);
+        refreshEntryList();
+        updateRawShiftsTextarea();
+        updateDynamicLoreJsonFromEntries();
+        openShiftEditor();
+      }
+
+      function deleteCurrentShift() {
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        const entry = entries[currentIndex];
+        if (!Array.isArray(entry.Shifts) || currentShiftIndex < 0 || currentShiftIndex >= entry.Shifts.length) {
+          return;
+        }
+        const shift = entry.Shifts[currentShiftIndex];
+        const ok = confirm(`Delete shift "${shift.id || "(unnamed)"}"?`);
+        if (!ok) return;
+        entry.Shifts.splice(currentShiftIndex, 1);
+        if (entry.Shifts.length === 0) {
+          currentShiftIndex = -1;
+        } else {
+          currentShiftIndex = Math.max(0, currentShiftIndex - 1);
+        }
+        refreshShiftList();
+        if (currentShiftIndex >= 0) {
+          fillShiftForm(entry.Shifts[currentShiftIndex]);
+        } else {
+          fillShiftForm(null);
+        }
+        refreshEntryList();
+        updateRawShiftsTextarea();
+        updateDynamicLoreJsonFromEntries();
+        showEntryEditor();
+      }
+
+      function updateRawShiftsTextarea() {
+        const rawEl = $("fieldShiftsRaw");
+        if (!rawEl) return;
+        if (currentIndex < 0 || currentIndex >= entries.length) {
+          rawEl.value = "";
+          return;
+        }
+        const entry = entries[currentIndex];
+        const shifts = Array.isArray(entry.Shifts) ? entry.Shifts : [];
+        if (!shifts.length) {
+          rawEl.value = "";
+          return;
+        }
+        try {
+          rawEl.value = JSON.stringify(shifts, null, 2);
+        } catch (e) {
+          rawEl.value = "";
+        }
+      }
+
+      function applyRawShiftsFromTextarea() {
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        const entry = entries[currentIndex];
+        const raw = $("fieldShiftsRaw").value.trim();
+        if (!raw) {
+          entry.Shifts = [];
+          currentShiftIndex = -1;
+          refreshShiftList();
+          fillShiftForm(null);
+          refreshEntryList();
+          updateDynamicLoreJsonFromEntries();
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) {
+            throw new Error("Shifts JSON must be an array.");
+          }
+          entry.Shifts = parsed;
+          currentShiftIndex = parsed.length ? 0 : -1;
+          refreshShiftList();
+          if (currentShiftIndex >= 0) {
+            fillShiftForm(entry.Shifts[currentShiftIndex]);
+          } else {
+            fillShiftForm(null);
+          }
+          refreshEntryList();
+          updateDynamicLoreJsonFromEntries();
+        } catch (err) {
+          alert("Could not parse Shifts JSON.\n\n" + err.message);
+        }
+      }
+
+      function updateShiftBreadcrumb() {
+        const label = $("shiftParentEntryLabel");
+        if (!label) return;
+        if (currentIndex < 0 || currentIndex >= entries.length) {
+          label.textContent = "(no parent)";
+          return;
+        }
+        const entry = entries[currentIndex];
+        label.textContent = entry.id || "(unnamed entry)";
+      }
+
+      function openShiftEditor() {
+        $("entryEditor").classList.add("hidden");
+        $("shiftEditor").classList.remove("hidden");
+        updateShiftBreadcrumb();
+      }
+
+      function showEntryEditor() {
+        $("shiftEditor").classList.add("hidden");
+        $("entryEditor").classList.remove("hidden");
+        updateShiftBreadcrumb();
+      }
+      // ======================================================================
+      // Form <-> entry syncing
+      // ======================================================================
+      function clearForm() {
+        $("fieldId").value = "";
+        $("fieldTarget").value = "scenario";
+        $("fieldPriority").value = 5;
+        $("fieldRandomWeight").value = 1.0;
+        $("fieldMinMessages").value = "";
+        $("fieldMaxMessages").value = "";
+        $("fieldKeywordWindow").value = "";
+        $("fieldKeywords").value = "";
+        $("fieldAndAllTags").value = "";
+        $("fieldAndAnyTags").value = "";
+        $("fieldNotTags").value = "";
+        $("fieldKeywordsAll").value = "";
+        $("fieldKeywordsNone").value = "";
+        $("fieldRequireAll").value = "";
+        $("fieldRequireAny").value = "";
+        $("fieldRequireNone").value = "";
+        $("fieldGroupId").value = "";
+        $("fieldGroupWeight").value = "";
+        const fgCooldown = $("fieldGroupCooldown");
+        if (fgCooldown) fgCooldown.value = "";
+        $("fieldGroupMaxUses").value = "";
+        $("fieldText").value = "";
+        $("tagMode").value = "all";
+        $("fieldGroupChance").value = "";
+        const keywordRadios = document.querySelectorAll('input[name="keywordRole"]');
+        keywordRadios.forEach((r) => {
+          r.checked = (r.value === "any");
+        });
+        setSelectedTagsForGroup("emoCheckboxes", []);
+        setSelectedTagsForGroup("subCheckboxes", []);
+        setSelectedTagsForGroup("relCheckboxes", []);
+        setSelectedTagsForGroup("powerCheckboxes", []);
+        setSelectedTagsForGroup("sceneDistCheckboxes", []);
+        setSelectedTagsForGroup("topicBeatCheckboxes", []);
+        $("currentEntryLabel").textContent = "No entry selected";
+        $("shiftId").value = "";
+        $("shiftTarget").value = "";
+        $("shiftPriority").value = "";
+        $("shiftRandomWeight").value = "";
+        $("shiftMinMessages").value = "";
+        $("shiftMaxMessages").value = "";
+        $("shiftTagMode").value = "all";
+        $("shiftAndAll").value = "";
+        $("shiftAndAny").value = "";
+        $("shiftNotTags").value = "";
+        $("shiftText").value = "";
+        $("fieldShiftsRaw").value = "";
+        $("shiftList").innerHTML = "";
+        setSelectedTagsForGroup("shiftEmoCheckboxes", []);
+        setSelectedTagsForGroup("shiftSubCheckboxes", []);
+        setSelectedTagsForGroup("shiftRelCheckboxes", []);
+        setSelectedTagsForGroup("shiftPowerCheckboxes", []);
+        setSelectedTagsForGroup("shiftSceneDistCheckboxes", []);
+        setSelectedTagsForGroup("shiftTopicBeatCheckboxes", []);
+        updateShiftBreadcrumb();
+      }
+
+      function fillFormFromEntry(entry) {
+        if (!entry) {
+          clearForm();
+          return;
+        }
+        $("fieldId").value = entry.id || "";
+        $("fieldTarget").value = entry.target || "scenario";
+        $("fieldPriority").value = entry.priority != null ? entry.priority : 5;
+        $("fieldRandomWeight").value = entry.randomWeight != null ? entry.randomWeight : 1.0;
+        $("fieldMinMessages").value = entry.minMessages != null ? entry.minMessages : "";
+        $("fieldMaxMessages").value = entry.maxMessages != null ? entry.maxMessages : "";
+        $("fieldKeywordWindow").value = entry.keywordWindow != null ? entry.keywordWindow : "";
+        $("fieldKeywords").value = listToText(entry.keywordsAny || []);
+        $("fieldKeywordsAll").value = listToText(entry.keywordsAll || []);
+        $("fieldKeywordsNone").value = listToText(entry.keywordsNone || []);
+        $("fieldAndAllTags").value = listToText(entry.andAllTags || []);
+        $("fieldAndAnyTags").value = listToText(entry.andAnyTags || []);
+        $("fieldNotTags").value = listToText(entry.notTags || []);
+        $("fieldRequireAll").value = listToText(entry.requires || []);
+        $("fieldRequireAny").value = listToText(entry.requireAny || []);
+        $("fieldRequireNone").value = listToText(entry.requireNone || []);
+        $("fieldGroupId").value = entry.groupId || "";
+        $("fieldGroupWeight").value = entry.groupWeight != null ? entry.groupWeight : "";
+        const fgCooldown = $("fieldGroupCooldown");
+        if (fgCooldown) {
+          fgCooldown.value = entry.groupCooldown != null ? entry.groupCooldown : "";
+        }
+        $("fieldGroupMaxUses").value = entry.groupMaxUses != null ? entry.groupMaxUses : "";
+        $("fieldGroupChance").value = entry.groupChance != null ? entry.groupChance : "";
+        $("fieldText").value = entry.text || "";
+        $("tagMode").value = entry.tagMode || "all";
+        const role = entry.keywordRoles || "any";
+        const keywordRadios = document.querySelectorAll('input[name="keywordRole"]');
+        keywordRadios.forEach((r) => {
+          r.checked = (r.value === role);
+        });
+        const allAllTags = entry.andAllTags || [];
+        const emoTags = allAllTags.filter((t) => t.startsWith("emo."));
+        const subTags = allAllTags.filter((t) => t.startsWith("sub."));
+        const relTags = allAllTags.filter((t) => t.startsWith("rel."));
+        const powTags = allAllTags.filter((t) => t.startsWith("power."));
+        const sceneTags = allAllTags.filter(
+          (t) => t.startsWith("scene.") || t.startsWith("dist."));
+        const topicTags = allAllTags.filter(
+          (t) => t.startsWith("topic.") || t.startsWith("beat."));
+        setSelectedTagsForGroup("emoCheckboxes", emoTags.length ? [emoTags[0]] : []);
+        setSelectedTagsForGroup("subCheckboxes", subTags.length ? [subTags[0]] : []);
+        setSelectedTagsForGroup("relCheckboxes", relTags.length ? [relTags[0]] : []);
+        setSelectedTagsForGroup("powerCheckboxes", powTags.length ? [powTags[0]] : []);
+        setSelectedTagsForGroup("sceneDistCheckboxes", sceneTags.length ? [sceneTags[0]] : []);
+        setSelectedTagsForGroup("topicBeatCheckboxes", topicTags.length ? [topicTags[0]] : []);
+        $("currentEntryLabel").textContent = entry.id ? `Editing: ${entry.id}` : "Editing: (unnamed)";
+        if (!Array.isArray(entry.Shifts)) entry.Shifts = [];
+        if (currentShiftIndex >= entry.Shifts.length) {
+          currentShiftIndex = entry.Shifts.length ? 0 : -1;
+        }
+        refreshShiftList();
+        if (currentShiftIndex >= 0) {
+          fillShiftForm(entry.Shifts[currentShiftIndex]);
+        } else {
+          fillShiftForm(null);
+        }
+      }
+
+      function saveFormToCurrentEntry() {
+        if (currentIndex < 0 || currentIndex >= entries.length) return;
+        const entry = entries[currentIndex];
+        entry.id = $("fieldId").value.trim();
+        entry.target = $("fieldTarget").value || "scenario";
+        entry.priority = Number($("fieldPriority").value || 5);
+        entry.randomWeight = Number($("fieldRandomWeight").value || 1.0);
+        const minMsg = $("fieldMinMessages").value.trim();
+        const maxMsg = $("fieldMaxMessages").value.trim();
+        const kwWindow = $("fieldKeywordWindow").value.trim();
+        entry.minMessages = minMsg === "" ? null : Number(minMsg);
+        entry.maxMessages = maxMsg === "" ? null : Number(maxMsg);
+        entry.keywordWindow = kwWindow === "" ? null : Number(kwWindow);
+        entry.keywordsAny = textAreaToList($("fieldKeywords").value);
+        entry.keywordsAll = textAreaToList($("fieldKeywordsAll").value);
+        entry.keywordsNone = textAreaToList($("fieldKeywordsNone").value);
+        entry.andAllTags = textAreaToList($("fieldAndAllTags").value);
+        entry.andAnyTags = textAreaToList($("fieldAndAnyTags").value);
+        entry.notTags = textAreaToList($("fieldNotTags").value);
+        entry.requires = textAreaToList($("fieldRequireAll").value);
+        entry.requireAny = textAreaToList($("fieldRequireAny").value);
+        entry.requireNone = textAreaToList($("fieldRequireNone").value);
+        entry.groupId = $("fieldGroupId").value.trim();
+        const gWeightEl = $("fieldGroupWeight");
+        const gCoolEl = $("fieldGroupCooldown");
+        const gMaxEl = $("fieldGroupMaxUses");
+        const gChanceEl = $("fieldGroupChance");
+        const gWeightVal = gWeightEl ? gWeightEl.value.trim() : "";
+        const gCoolVal = gCoolEl ? gCoolEl.value.trim() : "";
+        const gMaxVal = gMaxEl ? gMaxEl.value.trim() : "";
+        const gChanceVal = gChanceEl ? gChanceEl.value.trim() : "";
+        entry.groupWeight = gWeightVal === "" ? null : Number(gWeightVal); // relative weight in group
+        entry.groupCooldown = gCoolVal === "" ? null : Number(gCoolVal);
+        entry.groupMaxUses = gMaxVal === "" ? null : Number(gMaxVal);
+        entry.groupChance = gChanceVal === "" ? null : Number(gChanceVal); // 0–100 % chance this group fires
+        entry.text = $("fieldText").value;
+        entry.tagMode = $("tagMode").value || "all";
+        let roleVal = "any";
+        const keywordRadios = document.querySelectorAll('input[name="keywordRole"]');
+        keywordRadios.forEach((r) => {
+          if (r.checked) roleVal = r.value;
+        });
+        entry.keywordRoles = roleVal;
+        const pickerTags = [].concat(getSelectedTagsFromGroup("emoCheckboxes")).concat(getSelectedTagsFromGroup("subCheckboxes")).concat(getSelectedTagsFromGroup("relCheckboxes")).concat(getSelectedTagsFromGroup("powerCheckboxes")).concat(getSelectedTagsFromGroup("sceneDistCheckboxes")).concat(getSelectedTagsFromGroup("topicBeatCheckboxes"));
+        const uniquePicker = Array.from(new Set(pickerTags));
+        if (entry.tagMode === "all") {
+          entry.andAllTags = Array.from(new Set([...(entry.andAllTags || []), ...uniquePicker]));
+        } else if (entry.tagMode === "any") {
+          entry.andAnyTags = Array.from(new Set([...(entry.andAnyTags || []), ...uniquePicker]));
+        }
+        $("currentEntryLabel").textContent = entry.id ? `Editing: ${entry.id}` : "Editing: (unnamed)";
+        refreshEntryList();
+        updateDynamicLoreJsonFromEntries();
+      }
+      // ======================================================================
+      // dynamicLore <-> entries
+      // ======================================================================
+      function entriesToDynamicLore(entriesList) {
+        return (entriesList || []).map((e) => {
+          if (!e || typeof e !== "object") return {};
+          const out = {
+            id: e.id || "",
+            priority: e.priority ?? 5,
+            target: e.target || "scenario",
+            randomWeight: e.randomWeight != null ? e.randomWeight : 1.0,
+            text: e.text || ""
+          };
+          if (e.minMessages != null) out.minMessages = e.minMessages;
+          if (e.maxMessages != null) out.maxMessages = e.maxMessages;
+          if (e.keywordWindow != null) out.keywordWindow = e.keywordWindow;
+          if (e.keywordRoles && e.keywordRoles !== "any") out.keywordRoles = e.keywordRoles;
+          if (e.keywordsAny && e.keywordsAny.length) out.keywordsAny = e.keywordsAny;
+          if (e.keywordsAll && e.keywordsAll.length) out.keywordsAll = e.keywordsAll;
+          if (e.keywordsNone && e.keywordsNone.length) out.keywordsNone = e.keywordsNone;
+          if (e.andAllTags && e.andAllTags.length) out.andAllTags = e.andAllTags;
+          if (e.andAnyTags && e.andAnyTags.length) out.andAnyTags = e.andAnyTags;
+          if (e.notTags && e.notTags.length) {
+            out.notTags = e.notTags;
+            out.andNotTags = e.notTags;
+          }
+          if (e.requires && e.requires.length) out.requires = e.requires;
+          if (e.requireAny && e.requireAny.length) out.requireAny = e.requireAny;
+          if (e.requireNone && e.requireNone.length) out.requireNone = e.requireNone;
+          if (e.groupId) out.groupId = e.groupId;
+          if (e.groupWeight != null) out.groupWeight = e.groupWeight;
+          if (e.groupCooldown != null) out.groupCooldown = e.groupCooldown;
+          if (e.groupMaxUses != null) out.groupMaxUses = e.groupMaxUses;
+          if (e.groupChance != null) out.groupChance = e.groupChance;
+          if (Array.isArray(e.Shifts) && e.Shifts.length) {
+            // NOTE: shallow-map shifts ONLY, do NOT call entriesToDynamicLore here
+            out.Shifts = e.Shifts.filter((s) => s && typeof s === "object").map((s) => {
+              const sOut = Object.assign({}, s);
+              if (sOut.notTags && sOut.notTags.length && !sOut.andNotTags) {
+                sOut.andNotTags = sOut.notTags.slice();
+              }
+              return sOut;
+            });
+          }
+          return out;
+        });
+      }
+
+      function dynamicLoreToEntries(loreArray) {
+        if (!Array.isArray(loreArray)) return [];
+        return loreArray.map((obj) => {
+          const e = makeEmptyEntry();
+          if (!obj || typeof obj !== "object") return e;
+          e.id = obj.id || "";
+          e.priority = obj.priority != null ? obj.priority : 5;
+          e.target = obj.target || "scenario";
+          e.randomWeight = obj.randomWeight != null ? obj.randomWeight : 1.0;
+          e.minMessages = obj.minMessages != null ? obj.minMessages : null;
+          e.maxMessages = obj.maxMessages != null ? obj.maxMessages : null;
+          e.keywordWindow = obj.keywordWindow != null ? obj.keywordWindow : null;
+          e.keywordRoles = obj.keywordRoles || "any";
+          e.keywordsAny = obj.keywordsAny || [];
+          e.keywordsAll = obj.keywordsAll || [];
+          e.keywordsNone = obj.keywordsNone || [];
+          e.andAllTags = obj.andAllTags || [];
+          e.andAnyTags = obj.andAnyTags || [];
+          e.notTags = obj.andNotTags || obj.notTags || [];
+          e.requires = obj.requires || obj.requireAll || [];
+          e.requireAny = obj.requireAny || [];
+          e.requireNone = obj.requireNone || [];
+          e.text = obj.text || "";
+          e.tagMode = "all";
+          e.groupId = obj.groupId || "";
+          e.groupWeight = obj.groupWeight != null ? obj.groupWeight : 1.0;
+          e.groupCooldown = obj.groupCooldown != null ? obj.groupCooldown : null;
+          e.groupMaxUses = obj.groupMaxUses != null ? obj.groupMaxUses : null;
+          e.groupChance = obj.groupChance != null ? obj.groupChance : null;
+          const rawShifts = obj.Shifts || obj.shifts || [];
+          e.Shifts = Array.isArray(rawShifts) ? rawShifts.filter((s) => s && typeof s === "object") : [];
+          return e;
+        });
+      }
+
+      function updateDynamicLoreJsonFromEntries() {
+        const lore = entriesToDynamicLore(entries);
+        const textarea = $("textareaDynamicLore");
+        if (textarea) {
+          textarea.value = JSON.stringify(lore, null, 2);
+        }
+      }
+
+      function applyDynamicLoreJsonToEntries() {
+        try {
+          const text = $("textareaDynamicLore").value.trim();
+          if (!text) return;
+          const data = JSON.parse(text);
+          entries = dynamicLoreToEntries(data);
+          currentIndex = entries.length ? 0 : -1;
+          currentShiftIndex = -1;
+          refreshEntryList();
+          if (currentIndex >= 0) fillFormFromEntry(entries[currentIndex]);
+          else clearForm();
+        } catch (err) {
+          alert("Could not parse JSON. Please ensure it is valid.\n\n" + err.message);
+        }
+      }
+      // ======================================================================
+      // AURA engine import / export
+      // ======================================================================
+      function extractLoreArrayText(engineSource) {
+        const marker = "var LORE_ENTRIES";
+        const idx = engineSource.indexOf(marker);
+        if (idx === -1) return null;
+        const openBracket = engineSource.indexOf("[", idx);
+        if (openBracket === -1) return null;
+        const closeIdx = engineSource.indexOf("];", openBracket);
+        if (closeIdx === -1) return null;
+        const snippet = engineSource.slice(openBracket, closeIdx + 1);
+        return {
+          snippet,
+          openBracket,
+          closeIdx
+        };
+      }
+
+      function importAuraFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = e.target.result;
+          auraEngineTemplate = text;
+          $("engineStatus").textContent = `Loaded: ${file.name}`;
+          $("engineStatus").classList.remove("bad");
+          $("engineStatus").classList.add("good");
+          const extracted = extractLoreArrayText(text);
+          if (!extracted) {
+            alert("Loaded engine file, but could not find 'var LORE_ENTRIES = [...]'. You can still generate, but base entries won't be imported.");
+            $("fullScriptStatus").textContent = "Engine loaded, but no LORE_ENTRIES block found.";
+            $("textareaFullScript").value = text;
+            return;
+          }
+          try {
+            const loreArray = new Function("return " + extracted.snippet + ";")();
+            if (!Array.isArray(loreArray)) {
+              throw new Error("LORE_ENTRIES is not an array.");
+            }
+            entries = dynamicLoreToEntries(loreArray);
+            currentIndex = entries.length ? 0 : -1;
+            currentShiftIndex = -1;
+            refreshEntryList();
+            if (currentIndex >= 0) fillFormFromEntry(entries[currentIndex]);
+            else clearForm();
+            updateDynamicLoreJsonFromEntries();
+            $("textareaFullScript").value = text;
+            $("fullScriptStatus").textContent = "Engine loaded from disk.";
+            latestGeneratedScript = text;
+            $("btnDownloadJs").disabled = false;
+          } catch (err) {
+            console.error(err);
+            alert("Failed to parse LORE_ENTRIES array from engine file.\n\n" + err.message);
+            $("fullScriptStatus").textContent = "Engine loaded (LORE_ENTRIES parsing failed).";
+            $("textareaFullScript").value = text;
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function generateFullScriptFromEntries() {
+        if (!auraEngineTemplate) {
+          alert("Please import an AURA engine JS/TXT file first using the 'Import AURA JS / TXT' button.");
+          return;
+        }
+        saveFormToCurrentEntry();
+        saveShiftFormToCurrentEntry();
+        const loreArray = entriesToDynamicLore(entries);
+        const loreJson = JSON.stringify(loreArray, null, 2);
+        const extracted = extractLoreArrayText(auraEngineTemplate);
+        if (!extracted) {
+          alert("Could not find 'var LORE_ENTRIES = [...]' in the loaded engine template.");
+          return;
+        }
+        const before = auraEngineTemplate.slice(0, extracted.openBracket);
+        const after = auraEngineTemplate.slice(extracted.closeIdx + 2);
+        const newScript = before + loreJson + after;
+        latestGeneratedScript = newScript;
+        $("textareaDynamicLore").value = loreJson;
+        $("textareaFullScript").value = newScript;
+        $("fullScriptStatus").textContent = "Generated JS from current GUI entries.";
+        $("btnDownloadJs").disabled = false;
+      }
+
+      function downloadGeneratedScript() {
+        if (!latestGeneratedScript) {
+          alert("Nothing to download yet. Generate JS first.");
+          return;
+        }
+        const blob = new Blob([latestGeneratedScript], {
+          type: "text/javascript"
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "AURA_Engine_custom.js";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+      // ======================================================================
+      // View switching (visual / code)
+      // ======================================================================
+      function setActiveView(view) {
+        if (view === "visual") {
+          $("viewVisual").classList.remove("hidden");
+          $("viewCode").classList.add("hidden");
+          $("tabVisual").classList.add("active");
+          $("tabCode").classList.remove("active");
+        } else {
+          $("viewVisual").classList.add("hidden");
+          $("viewCode").classList.remove("hidden");
+          $("tabVisual").classList.remove("active");
+          $("tabCode").classList.add("active");
+          saveFormToCurrentEntry();
+          saveShiftFormToCurrentEntry();
+          updateDynamicLoreJsonFromEntries();
+        }
+      }
+      // ======================================================================
+      // Event wiring
+      // ======================================================================
+      function init() {
+        // Build picker dropdown groups
+        createOptionGroup("emoCheckboxes", EMOTION_TAGS, "emo", "group_emo");
+        createOptionGroup("subCheckboxes", SUBTEXT_TAGS, "sub", "group_sub");
+        createOptionGroup("relCheckboxes", RELATION_TAGS, "rel", "group_rel");
+        createOptionGroup("powerCheckboxes", POWER_TAGS, "pow", "group_power");
+        createOptionGroup("sceneDistCheckboxes", SCENE_DIST_TAGS, "scene", "group_scene");
+        createOptionGroup("topicBeatCheckboxes", TOPIC_BEAT_TAGS, "topic", "group_topic");
+        // Shift picker groups
+        createOptionGroup("shiftEmoCheckboxes", EMOTION_TAGS, "sh_emo", "group_sh_emo");
+        createOptionGroup("shiftSubCheckboxes", SUBTEXT_TAGS, "sh_sub", "group_sh_sub");
+        createOptionGroup("shiftRelCheckboxes", RELATION_TAGS, "sh_rel", "group_sh_rel");
+        createOptionGroup("shiftPowerCheckboxes", POWER_TAGS, "sh_pow", "group_sh_power");
+        createOptionGroup("shiftSceneDistCheckboxes", SCENE_DIST_TAGS, "sh_scene", "group_sh_scene");
+        createOptionGroup("shiftTopicBeatCheckboxes", TOPIC_BEAT_TAGS, "sh_topic", "group_sh_topic");
+        // Sidebar buttons
+        $("btnNewEntry").addEventListener("click", () => {
+          saveFormToCurrentEntry();
+          saveShiftFormToCurrentEntry();
+          addNewEntry();
+          updateDynamicLoreJsonFromEntries();
+        });
+        $("btnDuplicateEntry").addEventListener("click", () => {
+          duplicateCurrentEntry();
+        });
+        $("btnDeleteEntry").addEventListener("click", () => {
+          deleteCurrentEntry();
+        });
+        // Form change handlers
+        ["fieldId", "fieldTarget", "fieldPriority", "fieldRandomWeight", "fieldMinMessages", "fieldMaxMessages", "fieldKeywordWindow", "fieldKeywords", "fieldKeywordsAll", "fieldKeywordsNone", "fieldAndAllTags", "fieldAndAnyTags", "fieldNotTags", "fieldRequireAll", "fieldRequireAny", "fieldRequireNone", "fieldGroupId", "fieldGroupWeight", "fieldGroupMaxUses", "fieldGroupChance", "fieldText", "tagMode"
+        ].forEach((id) => {
+          const el = $(id);
+          if (!el) return;
+          el.addEventListener("change", () => saveFormToCurrentEntry());
+          if (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.tagName === "SELECT") {
+            el.addEventListener("blur", () => saveFormToCurrentEntry());
+          }
+        });
+        // Keyword scope radios
+        const keywordRadios = document.querySelectorAll('input[name="keywordRole"]');
+        keywordRadios.forEach((r) => {
+          r.addEventListener("change", () => saveFormToCurrentEntry());
+        });
+        // Dropdown groups (entry)
+        ["emoCheckboxes", "subCheckboxes", "relCheckboxes", "powerCheckboxes", "sceneDistCheckboxes", "topicBeatCheckboxes"].forEach((id) => {
+          const container = $(id);
+          if (container) {
+            container.addEventListener("change", () => saveFormToCurrentEntry());
+          }
+        });
+        // Dropdown groups (shifts)
+        ["shiftEmoCheckboxes", "shiftSubCheckboxes", "shiftRelCheckboxes", "shiftPowerCheckboxes", "shiftSceneDistCheckboxes", "shiftTopicBeatCheckboxes"].forEach((id) => {
+          const container = $(id);
+          if (container) {
+            container.addEventListener("change", () => saveShiftFormToCurrentEntry());
+          }
+        });
+        // Shift buttons
+        $("btnAddShift").addEventListener("click", () => {
+          addShiftToCurrentEntry();
+        });
+        $("btnDuplicateShift").addEventListener("click", () => {
+          duplicateCurrentShift();
+        });
+        $("btnDeleteShift").addEventListener("click", () => {
+          deleteCurrentShift();
+        });
+        // Shift editor form handlers
+        ["shiftId", "shiftTarget", "shiftPriority", "shiftRandomWeight", "shiftMinMessages", "shiftMaxMessages", "shiftAndAll", "shiftAndAny", "shiftNotTags", "shiftText", "shiftTagMode"].forEach((id) => {
+          const el = $(id);
+          if (!el) return;
+          el.addEventListener("change", () => saveShiftFormToCurrentEntry());
+          if (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.tagName === "SELECT") {
+            el.addEventListener("blur", () => saveShiftFormToCurrentEntry());
+          }
+        });
+        // Raw shifts JSON controls
+        $("btnShiftsFromGui").addEventListener("click", () => {
+          saveShiftFormToCurrentEntry();
+          updateRawShiftsTextarea();
+        });
+        $("btnShiftsToGui").addEventListener("click", () => {
+          applyRawShiftsFromTextarea();
+        });
+        // Back from shift editor
+        $("btnBackToEntry").addEventListener("click", () => {
+          try {
+            saveShiftFormToCurrentEntry();
+          } catch (err) {
+            console.error("Error saving shift before returning:", err);
+          }
+          showEntryEditor();
+        });
+        // Tabs
+        $("tabVisual").addEventListener("click", () => setActiveView("visual"));
+        $("tabCode").addEventListener("click", () => setActiveView("code"));
+        // Import AURA engine
+        $("btnImportAura").addEventListener("click", () => {
+          $("fileInputAura").click();
+        });
+        $("fileInputAura").addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          importAuraFile(file);
+        });
+        // Generate & download
+        $("btnGenerateJs").addEventListener("click", () => {
+          generateFullScriptFromEntries();
+        });
+        $("btnDownloadJs").addEventListener("click", () => {
+          downloadGeneratedScript();
+        });
+        // Code view buttons
+        $("btnLoreFromGui").addEventListener("click", () => {
+          saveFormToCurrentEntry();
+          saveShiftFormToCurrentEntry();
+          updateDynamicLoreJsonFromEntries();
+        });
+        $("btnLoreToGui").addEventListener("click", () => {
+          applyDynamicLoreJsonToEntries();
+        });
+        // Start with one blank entry so the UI isn’t empty
+        addNewEntry();
+        updateDynamicLoreJsonFromEntries();
+      }
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
