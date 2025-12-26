@@ -1183,7 +1183,24 @@ const activeName = _normalizeText(
      ========================================================================== */
   //#region FLUSH
   if (personalityBuffer) context.character.personality += personalityBuffer;
-  if (scenarioBuffer) context.character.scenario += scenarioBuffer;
+
+  // Scenario: Replace [AURA][/AURA] blocks if present, otherwise append
+  if (scenarioBuffer) {
+    if (scenarioBuffer.includes('[AURA]')) {
+      // Replace existing [AURA][/AURA] block with new one
+      const auraRegex = /\[AURA\][\s\S]*?\[\/AURA\]/g;
+      if (context.character.scenario.match(auraRegex)) {
+        context.character.scenario = context.character.scenario.replace(auraRegex, scenarioBuffer.trim());
+      } else {
+        // No existing block, append it
+        context.character.scenario += scenarioBuffer;
+      }
+    } else {
+      // Not an AURA block, just append
+      context.character.scenario += scenarioBuffer;
+    }
+  }
+
   if (exampleDialogsBuffer) context.character.example_dialogs += exampleDialogsBuffer;
   //#endregion
 })();
