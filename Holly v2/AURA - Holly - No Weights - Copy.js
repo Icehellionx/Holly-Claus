@@ -1184,20 +1184,42 @@ const activeName = _normalizeText(
   //#region FLUSH
   if (personalityBuffer) context.character.personality += personalityBuffer;
 
-  // Scenario: Replace individual S-ID rows within [AURA][/AURA] blocks
+  // Scenario: Replace individual ID rows within [AURA][/AURA] blocks
   if (scenarioBuffer) {
     if (scenarioBuffer.includes('[AURA]')) {
       const auraRegex = /\[AURA\]([\s\S]*?)\[\/AURA\]/;
-      const existingMatch = context.character.scenario.match(auraRegex);
+      let existingMatch = context.character.scenario.match(auraRegex);
+
+      // If no [AURA] block exists but there are ID rows, wrap them first
+      if (!existingMatch) {
+        const unwrappedRowRegex = /^([A-Z]\d+)\s*\|(.*)$/gm;
+        if (context.character.scenario.match(unwrappedRowRegex)) {
+          // Extract all unwrapped rows
+          const unwrappedRows = [];
+          let match;
+          const tempRegex = /^([A-Z]\d+)\s*\|(.*)$/gm;
+          while ((match = tempRegex.exec(context.character.scenario)) !== null) {
+            unwrappedRows.push(match[0]);
+          }
+          if (unwrappedRows.length > 0) {
+            // Wrap them in [AURA] tags
+            const wrapped = '[AURA]\n' + unwrappedRows.join('\n') + '\n[/AURA]';
+            // Replace the unwrapped rows with wrapped version
+            context.character.scenario = context.character.scenario.replace(tempRegex, '');
+            context.character.scenario += '\n' + wrapped;
+            existingMatch = context.character.scenario.match(auraRegex);
+          }
+        }
+      }
 
       if (existingMatch) {
-        // Extract existing rows from context.character.scenario
+        // Extract existing rows from context.character.scenario (support any ID: A1, S1, E1, etc.)
         const existingContent = existingMatch[1];
         const existingRows = {};
-        const rowRegex = /^(S\d+)\s*\|(.*)$/gm;
+        const rowRegex = /^([A-Z]\d+)\s*\|(.*)$/gm;
         let match;
         while ((match = rowRegex.exec(existingContent)) !== null) {
-          existingRows[match[1]] = match[0]; // Store full row by S-ID
+          existingRows[match[1]] = match[0]; // Store full row by ID
         }
 
         // Extract ALL new rows from ALL [AURA] blocks in scenarioBuffer
@@ -1205,24 +1227,28 @@ const activeName = _normalizeText(
         let blockMatch;
         while ((blockMatch = auraGlobalRegex.exec(scenarioBuffer)) !== null) {
           const blockContent = blockMatch[1];
-          const blockRowRegex = /^(S\d+)\s*\|(.*)$/gm;
+          const blockRowRegex = /^([A-Z]\d+)\s*\|(.*)$/gm;
           let rowMatch;
           while ((rowMatch = blockRowRegex.exec(blockContent)) !== null) {
-            existingRows[rowMatch[1]] = rowMatch[0]; // Replace or add row by S-ID
+            existingRows[rowMatch[1]] = rowMatch[0]; // Replace or add row by ID
           }
         }
 
-        // Reconstruct [AURA] block with updated rows
-        const sortedSIDs = Object.keys(existingRows).sort((a, b) => {
-          const numA = parseInt(a.substring(1));
-          const numB = parseInt(b.substring(1));
+        // Reconstruct [AURA] block with updated rows, sorted by ID
+        const sortedIDs = Object.keys(existingRows).sort((a, b) => {
+          // Sort by letter first, then number
+          const letterA = a.match(/^([A-Z]+)/)[1];
+          const letterB = b.match(/^([A-Z]+)/)[1];
+          if (letterA !== letterB) return letterA.localeCompare(letterB);
+          const numA = parseInt(a.match(/\d+$/)[0]);
+          const numB = parseInt(b.match(/\d+$/)[0]);
           return numA - numB;
         });
 
-        const reconstructed = '[AURA]\n' + sortedSIDs.map(sid => existingRows[sid]).join('\n') + '\n[/AURA]';
+        const reconstructed = '[AURA]\n' + sortedIDs.map(id => existingRows[id]).join('\n') + '\n[/AURA]';
         context.character.scenario = context.character.scenario.replace(auraRegex, reconstructed);
       } else {
-        // No existing [AURA] block, append the new one
+        // Still no block after wrapping attempt, just append
         context.character.scenario += scenarioBuffer;
       }
     } else {
