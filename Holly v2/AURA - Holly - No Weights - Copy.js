@@ -421,6 +421,8 @@ context.character.personality = (typeof context.character.personality === "strin
   ? context.character.personality : "";
 context.character.scenario = (typeof context.character.scenario === "string")
   ? context.character.scenario : "";
+context.character.example_dialogs = (typeof context.character.example_dialogs === "string")
+  ? context.character.example_dialogs : "";
 
 /* ============================================================================
    [SECTION] INPUT NORMALIZATION
@@ -1110,11 +1112,13 @@ const activeName = _normalizeText(
   //#region APPLY_AND_SHIFTS
   let personalityBuffer = "";
   let scenarioBuffer = "";
+  let exampleDialogsBuffer = "";
 
   for (const idx of selected) {
     const e3 = _ENGINE_LORE[idx];
     if (e3 && e3.personality) personalityBuffer += `\n\n${e3.personality}`;
     if (e3 && e3.scenario) scenarioBuffer += `\n\n${e3.scenario}`;
+    if (e3 && e3.example_dialogs) exampleDialogsBuffer += `\n${e3.example_dialogs}`;
     if (!(e3 && Array.isArray(e3.Shifts) && e3.Shifts.length)) continue;
 
     for (const sh of e3.Shifts) {
@@ -1130,6 +1134,7 @@ const activeName = _normalizeText(
 
       if (sh.personality) personalityBuffer += `\n\n${sh.personality}`;
       if (sh.scenario) scenarioBuffer += `\n\n${sh.scenario}`;
+      if (sh.example_dialogs) exampleDialogsBuffer += `\n${sh.example_dialogs}`;
     }
   }
 
@@ -1147,6 +1152,7 @@ const activeName = _normalizeText(
     if (!_isEntryActive(e4, unionTags)) { dbg(`post-filter entry[${i3}]`); continue; }
     if (e4.personality) personalityBuffer += `\n\n${e4.personality}`;
     if (e4.scenario) scenarioBuffer += `\n\n${e4.scenario}`;
+    if (e4.example_dialogs) exampleDialogsBuffer += `\n${e4.example_dialogs}`;
     dbg(`post-shift triggered entry[${i3}] p=${getPriority(e4)}`);
   }
 
@@ -1173,5 +1179,6 @@ const activeName = _normalizeText(
   //#region FLUSH
   if (personalityBuffer) context.character.personality += personalityBuffer;
   if (scenarioBuffer) context.character.scenario += scenarioBuffer;
+  if (exampleDialogsBuffer) context.character.example_dialogs += exampleDialogsBuffer;
   //#endregion
 })();
