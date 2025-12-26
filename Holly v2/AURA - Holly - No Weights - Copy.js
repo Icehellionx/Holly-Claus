@@ -1191,7 +1191,7 @@ const activeName = _normalizeText(
       const existingMatch = context.character.scenario.match(auraRegex);
 
       if (existingMatch) {
-        // Extract existing rows
+        // Extract existing rows from context.character.scenario
         const existingContent = existingMatch[1];
         const existingRows = {};
         const rowRegex = /^(S\d+)\s*\|(.*)$/gm;
@@ -1200,11 +1200,16 @@ const activeName = _normalizeText(
           existingRows[match[1]] = match[0]; // Store full row by S-ID
         }
 
-        // Extract new rows from scenarioBuffer
-        const newContent = scenarioBuffer.match(auraRegex)[1];
-        rowRegex.lastIndex = 0;
-        while ((match = rowRegex.exec(newContent)) !== null) {
-          existingRows[match[1]] = match[0]; // Replace or add row by S-ID
+        // Extract ALL new rows from ALL [AURA] blocks in scenarioBuffer
+        const auraGlobalRegex = /\[AURA\]([\s\S]*?)\[\/AURA\]/g;
+        let blockMatch;
+        while ((blockMatch = auraGlobalRegex.exec(scenarioBuffer)) !== null) {
+          const blockContent = blockMatch[1];
+          const blockRowRegex = /^(S\d+)\s*\|(.*)$/gm;
+          let rowMatch;
+          while ((rowMatch = blockRowRegex.exec(blockContent)) !== null) {
+            existingRows[rowMatch[1]] = rowMatch[0]; // Replace or add row by S-ID
+          }
         }
 
         // Reconstruct [AURA] block with updated rows
