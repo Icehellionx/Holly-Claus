@@ -1184,15 +1184,40 @@ const activeName = _normalizeText(
   //#region FLUSH
   if (personalityBuffer) context.character.personality += personalityBuffer;
 
-  // Scenario: Replace [AURA][/AURA] blocks if present, otherwise append
+  // Scenario: Replace individual S-ID rows within [AURA][/AURA] blocks
   if (scenarioBuffer) {
     if (scenarioBuffer.includes('[AURA]')) {
-      // Replace existing [AURA][/AURA] block with new one
-      const auraRegex = /\[AURA\][\s\S]*?\[\/AURA\]/g;
-      if (context.character.scenario.match(auraRegex)) {
-        context.character.scenario = context.character.scenario.replace(auraRegex, scenarioBuffer.trim());
+      const auraRegex = /\[AURA\]([\s\S]*?)\[\/AURA\]/;
+      const existingMatch = context.character.scenario.match(auraRegex);
+
+      if (existingMatch) {
+        // Extract existing rows
+        const existingContent = existingMatch[1];
+        const existingRows = {};
+        const rowRegex = /^(S\d+)\s*\|(.*)$/gm;
+        let match;
+        while ((match = rowRegex.exec(existingContent)) !== null) {
+          existingRows[match[1]] = match[0]; // Store full row by S-ID
+        }
+
+        // Extract new rows from scenarioBuffer
+        const newContent = scenarioBuffer.match(auraRegex)[1];
+        rowRegex.lastIndex = 0;
+        while ((match = rowRegex.exec(newContent)) !== null) {
+          existingRows[match[1]] = match[0]; // Replace or add row by S-ID
+        }
+
+        // Reconstruct [AURA] block with updated rows
+        const sortedSIDs = Object.keys(existingRows).sort((a, b) => {
+          const numA = parseInt(a.substring(1));
+          const numB = parseInt(b.substring(1));
+          return numA - numB;
+        });
+
+        const reconstructed = '[AURA]\n' + sortedSIDs.map(sid => existingRows[sid]).join('\n') + '\n[/AURA]';
+        context.character.scenario = context.character.scenario.replace(auraRegex, reconstructed);
       } else {
-        // No existing block, append it
+        // No existing [AURA] block, append the new one
         context.character.scenario += scenarioBuffer;
       }
     } else {
