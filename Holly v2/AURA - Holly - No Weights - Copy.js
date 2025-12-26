@@ -1193,19 +1193,22 @@ const activeName = _normalizeText(
       // If no [AURA] block exists but there are ID rows, wrap them first
       if (!existingMatch) {
         const unwrappedRowRegex = /^([A-Z]\d+)\s*\|(.*)$/gm;
-        if (context.character.scenario.match(unwrappedRowRegex)) {
+        const testMatch = context.character.scenario.match(unwrappedRowRegex);
+        if (testMatch && testMatch.length > 0) {
           // Extract all unwrapped rows
           const unwrappedRows = [];
           let match;
-          const tempRegex = /^([A-Z]\d+)\s*\|(.*)$/gm;
-          while ((match = tempRegex.exec(context.character.scenario)) !== null) {
+          const extractRegex = /^([A-Z]\d+)\s*\|(.*)$/gm;
+          while ((match = extractRegex.exec(context.character.scenario)) !== null) {
             unwrappedRows.push(match[0]);
           }
           if (unwrappedRows.length > 0) {
             // Wrap them in [AURA] tags
             const wrapped = '[AURA]\n' + unwrappedRows.join('\n') + '\n[/AURA]';
-            // Replace the unwrapped rows with wrapped version
-            context.character.scenario = context.character.scenario.replace(tempRegex, '');
+            // Remove all unwrapped ID rows from scenario (use fresh regex)
+            const replaceRegex = /^([A-Z]\d+)\s*\|(.*)$\n?/gm;
+            context.character.scenario = context.character.scenario.replace(replaceRegex, '');
+            // Append wrapped version
             context.character.scenario += '\n' + wrapped;
             existingMatch = context.character.scenario.match(auraRegex);
           }
